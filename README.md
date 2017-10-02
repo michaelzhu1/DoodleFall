@@ -15,7 +15,7 @@ In addition, this project will also include:
 ## WireFrames
 This app will consist of a single screen with the simulation canvas, HP bar on the upper left corner, and level on the upper right corner next to the username. User will be able to select the sprite they would like to control. About button is for the instruction modal.
 
-![wireframe](/Users/michael_zhu/Desktop/DoodleFall/doc/doodlefall_wireframe.png)
+![wireframe](https://github.com/michaelzhu1/DoodleFall/blob/master/docs/doodlefall_wireframe.png)
 
 ## Architecture and Technologies
 This project will be implemented with the following technologies:
