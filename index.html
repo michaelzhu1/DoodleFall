@@ -2,19 +2,14 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Doodle Fall</title>
+    <title>Doodle Fall</title><p>
+      <button onclick="start(this)">Start game</button>
   </head>
   <body>
-    <div id="main">
-      
+    <div id="game-wrapper">
+      <canvas id="gameCanvas" width="850" height="600" style="border: 1px dashed black; background: black;"></canvas>
+      <script type="application/javascript" src="./assets/javascripts/bundle.js"></script>
     </div>
-    <script type="text/javascript" src="lib/js/game.js"></script>
-    <script type="text/javascript" src="lib/js/player.js"></script>
-    <script type="text/javascript" src="lib/js/blockbase.js"></script>
-    <script type="text/javascript" src="lib/js/block_generator.js"></script>
-    <script type="text/javascript" src="lib/js/brick_block.js"></script>
-    <script type="text/javascript" src="lib/js/grass_block.js"></script>
-    <script type="text/javascript" src="lib/js/lava_block.js"></script>
-    <script type="text/javascript" src="lib/js/spring_block.js"></script>
+
   </body>
 </html>
