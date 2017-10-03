@@ -1,0 +1,15 @@
+#game-wrapper {
+  width: 600px;
+  height: 600px;
+  background-color: Black;
+  position: absolute;
+  left: 500px;
+  top: 100px;
+  overflow: hidden;
+  .player {
+    width: 30px;
+    height: 30px;
+    position: absolute;
+    background-color: red;
+  }
+}

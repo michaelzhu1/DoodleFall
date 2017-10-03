@@ -4,13 +4,19 @@
     <meta charset="utf-8">
     <title>Doodle Fall</title><p>
       <button onclick="start(this)">Start game</button>
+      <link rel="stylesheet" type="text/css" href="./assets/css/main.scss">
+      <style>#startButton{border-width:20px;border-style:solid;border-color:Black Black Black Green;
+			position:absolute;left:140px;top:200px;cursor:pointer;width:0px;height:0px;overflow:hidden;}
+      </style>
   </head>
   <body>
     <div id="game-wrapper">
-      <div id="startButton" onclick="start(this)"></div>
-      <canvas id="gameCanvas" width="850" height="600" style="border: 1px dashed black; background: black;"></canvas>
+      <div className="point">Level<span id="point">1</span></div>
+      <div id="startButton" onclick="Start(this)"></div>
       <script type="application/javascript" src="./assets/javascripts/bundle.js"></script>
     </div>
 
   </body>
 </html>
+
+<!-- <canvas id="gameCanvas" width="850" height="600" style="border: 1px dashed black; background: black;"></canvas> -->
