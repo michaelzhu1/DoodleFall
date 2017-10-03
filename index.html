@@ -2,20 +2,18 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Doodle Fall</title><p>
-      <button onclick="start(this)">Start game</button>
-      <link rel="stylesheet" type="text/css" href="./assets/css/main.scss">
-      <style>#startButton{border-width:20px;border-style:solid;border-color:Black Black Black Green;
-			position:absolute;left:140px;top:200px;cursor:pointer;width:0px;height:0px;overflow:hidden;}
-      </style>
+    <title>Doodle Fall</title>
+      <link rel="stylesheet" type="text/css" href="./assets/css/main.css">
   </head>
   <body>
+    <script type="text/javascript" src="./assets/javascripts/bundle.js"></script>
+
+    <button id="startbtn" class="start">Start Game</button>
+
+
     <div id="game-wrapper">
       <div className="point">Level<span id="point">1</span></div>
-      <div id="startButton" onclick="Start(this)"></div>
-      <script type="application/javascript" src="./assets/javascripts/bundle.js"></script>
     </div>
-
   </body>
 </html>
 
