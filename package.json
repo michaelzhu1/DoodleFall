@@ -1,7 +1,8 @@
 {
   "name": "DoodleFall",
   "version": "1.0.0",
-  "description": "*** ## Background and Overview DoodleFall is inspire by the popular mobile game \"Doodle Jump\". However, unlike \"Doodle Jump\", user is trying to make the Doodle staying alive by falling downwards. The game is tentatively set to 20 levels.The sprite loses some health if it touches spikes that's coming down from the ceiling or the lava block. The game is sadly over when the sprite fall to the bottom of the screen of or run out of health.",
+  "description":
+    "*** ## Background and Overview DoodleFall is inspire by the popular mobile game \"Doodle Jump\". However, unlike \"Doodle Jump\", user is trying to make the Doodle staying alive by falling downwards. The game is tentatively set to 20 levels.The sprite loses some health if it touches spikes that's coming down from the ceiling or the lava block. The game is sadly over when the sprite fall to the bottom of the screen of or run out of health.",
   "main": "webpack.config.js",
   "directories": {
     "doc": "docs"
@@ -10,11 +11,6 @@
     "babel-core": "^6.26.0",
     "babel-loader": "^7.1.2",
     "babel-preset-es2015": "^6.24.1",
-    "babel-preset-react": "^6.24.1",
-    "react": "^16.0.0",
-    "react-dom": "^16.0.0",
-    "react-redux": "^5.0.6",
-    "redux": "^3.7.2",
     "webpack": "^3.6.0"
   },
   "devDependencies": {

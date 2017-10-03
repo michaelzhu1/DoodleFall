@@ -76,13 +76,37 @@ var _game2 = _interopRequireDefault(_game);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+var game = new _game2.default();
+document.onkeydown = function (e) {
+  game.keyDown(e);
+};
+document.onkeyup = function (e) {
+  game.keyUp(e);
+};
+
 document.addEventListener("DOMContentLoaded", function () {
   var startButton = document.querySelector(".start");
+  game.gamePanel = document.getElementById("game-wrapper");
+  game.gamePanel.focus();
+  game.startPlayer();
+  game.startBlock();
   startButton.addEventListener("click", function () {
     startButton.style.display = "none";
-    _game2.default.init();
   });
 });
+
+// init() {
+//   this.gamePanel = document.getElementById("game-wrapper");
+//   this.gamePanel.focus();
+//   document.body.onkeydown = e => {
+//     Game.keydown(e);
+//   };
+//   document.body.onkeyup = e => {
+//     Game.keyup(e);
+//   };
+//   this.startPlayer();
+//   this.startBlock();
+// }
 
 /***/ }),
 /* 1 */
@@ -94,6 +118,8 @@ document.addEventListener("DOMContentLoaded", function () {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _player = __webpack_require__(2);
 
@@ -109,78 +135,83 @@ var _block_generator2 = _interopRequireDefault(_block_generator);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var Game = {
-  gamePanel: null,
-  player: null,
-  point: 0,
-  startButton: null,
-  createBlockId: 0,
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  init: function init() {
-    this.gamePanel = document.getElementById("game-wrapper");
-    this.gamePanel.focus();
-    document.body.onkeydown = function (e) {
-      Game.keydown(e);
-    };
-    document.body.onkeyup = function (e) {
-      Game.keyup(e);
-    };
-    this.startPlayer();
-    this.startBlock();
-  },
+var Game = function () {
+  function Game() {
+    _classCallCheck(this, Game);
 
+    this.gamePanel = null;
+    this.player = null;
+    this.point = 0;
+    this.startButton = null;
+    this.createBlockId = 0;
+  }
 
   //initialize player
-  startPlayer: function startPlayer() {
-    this.player = new _player2.default();
-    this.player.setPosition(this.gamePanel);
-    this.player.gameOver = function () {
-      Game.gameOver();
-    };
-    this.player.moveDown();
-  },
 
-  //initialize blocks
-  startBlock: function startBlock() {
-    this.block = new _blockbase2.default();
-    var that = this;
-    var time = 1100;
-    _block_generator2.default.init(this.gamePanel, this.player);
-  },
-  keyDown: function keyDown() {
-    var _this = this;
 
-    return function (e) {
+  _createClass(Game, [{
+    key: "startPlayer",
+    value: function startPlayer() {
+      this.player = new _player2.default();
+      this.player.setPosition(this.gamePanel);
+      this.player.gameOver = function () {
+        Game.gameOver();
+      };
+      this.player.moveDown();
+    }
+    //initialize blocks
+
+  }, {
+    key: "startBlock",
+    value: function startBlock() {
+      this.block = new _blockbase2.default();
+      var that = this;
+      var time = 1100;
+      new _block_generator2.default(this.gamePanel, this.player);
+    }
+  }, {
+    key: "keyDown",
+    value: function keyDown(e) {
       if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
         e.preventDefault();
-        _this.player.keyDown(e);
+        this.player.keyDown(e);
       }
-    };
-  },
-  keyUp: function keyUp() {
-    var _this2 = this;
+    }
+  }, {
+    key: "keyUp",
+    value: function keyUp() {
+      var _this = this;
 
-    return function (e) {
-      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-        e.preventDefault();
-        _this2.player.keyUp(e);
-      }
-    };
-  },
-  addPoint: function addPoint() {
-    this.point += 1;
-    document.getElementById("point").innerHTML = Math.floor(this.point / 5);
-  },
-  gameOver: function gameOver() {
-    _block_generator2.default.stopBlock();
-    document.body.onkeydown = null;
-    document.body.onkeyup = null;
-    clearInterval(this.createBlockId);
-  },
-  reset: function reset() {}
-};
+      return function (e) {
+        if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+          e.preventDefault();
+          _this.player.keyUp(e);
+        }
+      };
+    }
+  }, {
+    key: "addPoint",
+    value: function addPoint() {
+      this.point += 1;
+      document.getElementById("point").innerHTML = Math.floor(this.point / 5);
+    }
+  }, {
+    key: "gameOver",
+    value: function gameOver() {
+      _block_generator2.default.stopBlock();
+      document.body.onkeydown = null;
+      document.body.onkeyup = null;
+      clearInterval(this.createBlockId);
+    }
+  }, {
+    key: "reset",
+    value: function reset() {}
+  }]);
 
-//start the game here
+  return Game;
+}();
 
 exports.default = Game;
 
@@ -222,12 +253,11 @@ var Player = function () {
 
   _createClass(Player, [{
     key: "init",
-    value: function init() {
-      this.dom = document.createElement("div");
-    }
+    value: function init() {}
   }, {
     key: "setPosition",
     value: function setPosition(gamePanel) {
+      this.dom = document.createElement("div");
       this.gamePanel = gamePanel;
       this.gamePanel.appendChild(this.dom);
       this.dom.style.left = (this.gamePanel.offsetWidth - this.dom.offsetWidth) / 2 + "px";
@@ -254,7 +284,7 @@ var Player = function () {
         return;
       }
       this.isMove = true;
-      var dir = e.key === 37 ? "left" : "right";
+      var dir = e.key === "ArrowLeft" ? "left" : "right";
       this.moveLeftOrRight(dir);
     }
 
@@ -347,24 +377,18 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var BlockGenerator = function () {
-  function BlockGenerator() {
+  function BlockGenerator(gamePanel, player) {
     _classCallCheck(this, BlockGenerator);
 
-    this.gamePanel = null;
-    this.player = null;
+    this.gamePanel = gamePanel;
+    this.player = player;
     this.blockList = [];
   }
 
+  //randomly generate different kinds of blocks in random positions
+
+
   _createClass(BlockGenerator, [{
-    key: "init",
-    value: function init(gamePanel, player) {
-      this.gamePanel = gamePanel;
-      this.player = player;
-    }
-
-    //randomly generate different kinds of blocks in random positions
-
-  }, {
     key: "generateBlock",
     value: function generateBlock() {
       var random = Math.floor(Math.random() * 11 + 1);
