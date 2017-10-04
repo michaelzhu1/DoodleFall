@@ -78,10 +78,10 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var game = new _game2.default();
 document.onkeydown = function (e) {
-  game.keyDown(e);
+  game.keydown(e);
 };
 document.onkeyup = function (e) {
-  game.keyUp(e);
+  game.keyup(e);
 };
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -167,24 +167,25 @@ var Game = function () {
       }, time);
     }
   }, {
-    key: "keyDown",
-    value: function keyDown(e) {
+    key: "keydown",
+    value: function keydown(e) {
+      e = e || window.event;
       if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-        e.preventDefault();
-        this.player.keyDown(e);
+        if (e.preventDefault) {
+          e.preventDefault();
+        } else {
+          e.returnValue = false;
+        }
+        this.player.keydown(e);
       }
     }
   }, {
-    key: "keyUp",
-    value: function keyUp() {
-      var _this2 = this;
-
-      return function (e) {
-        if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-          e.preventDefault();
-          _this2.player.keyUp(e);
-        }
-      };
+    key: "keyup",
+    value: function keyup(e) {
+      e = e || window.event;
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        this.player.keyup(e);
+      }
     }
   }, {
     key: "addPoint",
@@ -195,7 +196,6 @@ var Game = function () {
   }, {
     key: "gameOver",
     value: function gameOver() {
-      _block_generator2.default.stopBlock();
       document.body.onkeydown = null;
       document.body.onkeyup = null;
       clearInterval(this.createBlockId);
@@ -237,22 +237,22 @@ var Player = function () {
 
     this.dom = null;
     //player's vertical moving speed
-    this.speedY = 0;
-    this.isMoving = false;
+    this.movepy = 0;
     //player's horizontal moving speed
+    this.movepx = 8;
+    this.isMove = false;
     this.moveXId = 0;
-    this.moveYid = 0;
+    this.moveYId = 0;
     this.isLive = true;
     this.isFlip = false;
     this.gamePanel = null;
-    this.elasticity = 0.8;
-    this.gravity = 1;
-    this.speedX = 8;
-    this.defaultSpeedY = 1;
-    this.movesp = 40;
+    this.k = 0.8;
+    this.g = 1;
+    this.defaultSpeed = 1;
+    this.movesp = 35;
     this.dom = document.createElement("div");
     this.dom.className = "player";
-    this.speedY = this.defaultSpeedY;
+    this.movepy = this.defaultSpeed;
   }
 
   _createClass(Player, [{
@@ -267,29 +267,27 @@ var Player = function () {
     //moves left or right according to which key is pressed
 
   }, {
-    key: "keyDown",
-    value: function keyDown(e) {
+    key: "keydown",
+    value: function keydown(e) {
       if (this.isMove) {
         return;
       }
       this.isMove = true;
-      var dir = e.key === "ArrowLeft" ? "left" : "right";
-      this.moveLeftOrRight(dir);
+      this.moveLeftRight(e.key == "ArrowLeft" ? "left" : "right");
     }
 
     //once key is released, it stops moving
 
   }, {
-    key: "keyUp",
-    value: function keyUp(e) {
-      this.isMoving = false;
+    key: "keyup",
+    value: function keyup(e) {
+      this.isMove = false;
       clearInterval(this.moveXId);
       this.dom.className = "player";
     }
   }, {
-    key: "moveLeftOrRight",
-    value: function moveLeftOrRight(direction) {
-      console.log(direction);
+    key: "moveLeftRight",
+    value: function moveLeftRight(direction) {
       var self = this;
       this.dom.className = direction;
 
@@ -297,16 +295,18 @@ var Player = function () {
         if (!self.isLive) {
           clearInterval(self.moveXId);
         }
-        self.dom.style.left = self.dom.offsetLeft + self.speedX * (direction === "left" ? -1 : 1) + "px";
+        self.dom.style.left = self.dom.offsetLeft + self.movepx * (direction == "left" ? -1 : 1) + "px";
 
-        if (self.dom.offsetLeft >= self.gamePanel.clientWidth - self.dom.clientWidth && direction === "right") {
+        if (self.dom.offsetLeft >= self.gamePanel.clientWidth - self.dom.clientWidth && direction == "right") {
           self.dom.style.left = self.gamePanel.clientWidth - self.dom.clientWidth + "px";
           clearInterval(self.moveXId);
-        } else if (self.dom.offsetLeft <= 0 && direction === "left") {
+          //player stops moving when it reaches left border
+        } else if (self.dom.offsetLeft <= 0 && direction == "left") {
           self.dom.style.left = 0 + "px";
           clearInterval(self.moveXId);
         }
       };
+      //start moving
       this.moveXId = setInterval(move, this.movesp);
     }
   }, {
@@ -314,13 +314,14 @@ var Player = function () {
     value: function moveDown() {
       var self = this;
       var move = function move() {
-        self.dom.style.top = self.dom.offsetTop + self.speedY + "px";
-        self.speedY += self.gravity;
+        self.dom.style.top = self.dom.offsetTop + self.movepy + "px";
+        //vertical speed + g
+        self.movepy += self.g;
         if (self.checkCrash()) {
           self.dead();
         }
       };
-      self.moveYID = setInterval(move, this.movesp);
+      self.moveYId = setInterval(move, this.movesp);
     }
   }, {
     key: "moveUp",
@@ -344,13 +345,13 @@ var Player = function () {
       var self = this;
       var initialFlipSpeed = 25;
       var move = function move() {
-        initialFlipSpeed *= self.elasticity;
+        initialFlipSpeed *= self.k;
         self.dom.style.top = self.dom.offsetTop - initialFlipSpeed + "px";
         if (self.checkCrash()) {
           self.dead();
         } else if (initialFlipSpeed < 1) {
           self.isFlip = false;
-          self.speedY = self.defaultSpeedY;
+          self.movepy = self.defaultSpeed;
           self.moveDown();
         } else {
           setTimeout(move, self.movesp);
@@ -369,10 +370,10 @@ var Player = function () {
     }
   }, {
     key: "clearMoveId",
-    value: function clearMoveId(speedY) {
+    value: function clearMoveId(movepy) {
       clearInterval(this.moveYId);
-      if (speedY) {
-        this.speedY = this.defaultSpeedY;
+      if (movepy) {
+        this.movepy = this.defaultSpeed;
       }
     }
   }, {
@@ -380,8 +381,11 @@ var Player = function () {
     value: function dead() {
       this.isLive = false;
       this.gameOver();
-      this.clearMoveId();
+      this.clearMoveId(true);
     }
+  }, {
+    key: "gameOver",
+    value: function gameOver() {}
   }]);
 
   return Player;
@@ -457,12 +461,14 @@ var BlockBase = function () {
         }
         var top = self.dom.offsetTop - self.movepx;
         self.dom.style.top = top + "px";
+        //checking if player is on the block
         var isPlayerOn = self.needCheckPlayerOn && self.onCheckPlayerOn();
+        //checking if player moves on the block
         if (self.needCheckMove) {
           self.onCheckMoveOut();
         }
         //block is out of the dom and player is not on it, then it disappear
-        if (top <= -self.dom.offsetHeigt && !isPlayerOn) {
+        if (top <= -self.dom.offsetHeight && !isPlayerOn) {
           self.end();
         } else if (isPlayerOn) {
           //excute block effects accordingly
@@ -505,6 +511,14 @@ var BlockBase = function () {
       }
       return false;
     }
+
+    // checkMoveOut(player) {}
+    //
+    // playOn(player) {}
+    // onCheckMoveOut() {}
+    // onCheckPlayerOn() {}
+    // onPlayOn() {}
+
   }]);
 
   return BlockBase;
@@ -541,30 +555,17 @@ var _spring_block = __webpack_require__(8);
 
 var _spring_block2 = _interopRequireDefault(_spring_block);
 
-var _blockbase = __webpack_require__(3);
-
-var _blockbase2 = _interopRequireDefault(_blockbase);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var BlockGenerator = function (_BlockBase) {
-  _inherits(BlockGenerator, _BlockBase);
-
+var BlockGenerator = function () {
   function BlockGenerator(gamePanel, player) {
     _classCallCheck(this, BlockGenerator);
 
-    var _this = _possibleConstructorReturn(this, (BlockGenerator.__proto__ || Object.getPrototypeOf(BlockGenerator)).call(this));
-
-    _this.gamePanel = gamePanel;
-    _this.player = player;
-    _this.blockList = [];
-    return _this;
+    this.gamePanel = gamePanel;
+    this.player = player;
+    this.blockList = [];
   }
 
   //randomly generate different kinds of blocks in random positions
@@ -575,7 +576,9 @@ var BlockGenerator = function (_BlockBase) {
     value: function generateBlock() {
       var random = Math.floor(Math.random() * 11 + 1);
       var block = void 0;
-      if (random === 5) {
+      if (random === 3) {
+        block = new _brick_block2.default();
+      } else if (random === 5) {
         block = new _brick_block2.default();
       } else if (random === 7) {
         block = new _brick_block2.default();
@@ -599,17 +602,15 @@ var BlockGenerator = function (_BlockBase) {
       var block = new _brick_block2.default();
       this.setBlock(block, 5);
     }
-
-    // init(gamePanel, player) {
-    //   this.gamePanel = gamePanel;
-    //   this.player = player;
-    // }
-
+  }, {
+    key: "init",
+    value: function init(gamePanel, player) {
+      this.gamePanel = gamePanel;
+      this.player = player;
+    }
   }, {
     key: "setBlock",
     value: function setBlock(block, position) {
-      var _this2 = this;
-
       var self = this;
       block.init();
       block.setPosition(this.gamePanel, position);
@@ -617,13 +618,13 @@ var BlockGenerator = function (_BlockBase) {
         return this.checkPlayerOn(self.player);
       };
       block.onPlayOn = function () {
-        _this2.playOn(self.player);
+        this.playOn(self.player);
       };
       block.onCheckMoveOut = function () {
-        _this2.checkMoveOut(self.player);
+        this.checkMoveOut(self.player);
       };
       block.onEnd = function () {
-        self.blockList.remove(_this2);
+        self.blockList.remove(this);
       };
       block.animation();
       this.blockList.push(block);
@@ -639,7 +640,7 @@ var BlockGenerator = function (_BlockBase) {
     key: "clearBlock",
     value: function clearBlock() {
       for (var i = 0; i < this.blockList.length; i++) {
-        var block = this.blockList[i].pop();
+        var block = this.blockList.pop();
         this.gamePanel.removeChild(block.dom);
         block.dom = null;
         block = null;
@@ -648,7 +649,7 @@ var BlockGenerator = function (_BlockBase) {
   }]);
 
   return BlockGenerator;
-}(_blockbase2.default);
+}();
 
 Array.prototype.remove = function (obj) {
   for (var i = 0; i < this.length; i++) {
@@ -705,7 +706,7 @@ var BrickBlock = function (_BlockBase) {
       //player stops moving vertically
       player.clearMoveId(true);
       //player moves up with the same speed as block it's on
-      player.moveUp(this.movepx, this.movesp);
+      player.moveUp(3, 35);
       this.animation();
       this.needCheckMove = true;
     }

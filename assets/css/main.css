@@ -12,6 +12,20 @@
   background: red;
 }
 
+#gamePanel .left {
+  width: 30px;
+  height: 30px;
+  position: absolute;
+  background: red;
+}
+
+#gamePanel .right {
+  width: 30px;
+  height: 30px;
+  position: absolute;
+  background: red;
+}
+
 #gamePanel .brick {
   position: absolute;
   background-color: white;
