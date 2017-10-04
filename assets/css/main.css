@@ -32,3 +32,9 @@
   overflow: hidden;
   background: white;
 }
+#gamePanel .lava {
+  position: absolute;
+  background-color: red;
+  overflow: hidden;
+  background: red;
+}
