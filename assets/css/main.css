@@ -1,7 +1,7 @@
 #gamePanel {
   width: 500px;
   height: 500px;
-  background-color: Black;
+  background-color: gray;
   position: absolute;
   overflow: hidden;
 }
@@ -10,6 +10,7 @@
   height: 30px;
   position: absolute;
   background: red;
+  border-radius: 100px;
 }
 
 #gamePanel .left {
@@ -17,13 +18,16 @@
   height: 30px;
   position: absolute;
   background: red;
+  border-radius: 100px;
 }
 
 #gamePanel .right {
   width: 30px;
   height: 30px;
   position: absolute;
+  /*background: url(Run__000.png);*/
   background: red;
+  border-radius: 100px;
 }
 
 #gamePanel .brick {
@@ -43,4 +47,10 @@
   background-color: green;
   overflow: hidden;
   background: green;
+}
+#gamePanel .spring {
+  position: absolute;
+  background-color: yellow;
+  overflow: hidden;
+  background: yellow;
 }
