@@ -12,7 +12,9 @@
   background: red;
 }
 
-#gamePanel .left {
-  width: 30px;
-  height: 30px;
+#gamePanel .brick {
+  position: absolute;
+  background-color: white;
+  overflow: hidden;
+  background: white;
 }

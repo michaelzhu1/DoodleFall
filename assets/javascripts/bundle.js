@@ -128,7 +128,6 @@ var Game = function () {
   function Game() {
     _classCallCheck(this, Game);
 
-    this.gamePanel = null;
     this.player = null;
     this.point = 0;
     this.startButton = null;
@@ -141,10 +140,12 @@ var Game = function () {
   _createClass(Game, [{
     key: "startPlayer",
     value: function startPlayer() {
+      var _this = this;
+
       this.player = new _player2.default();
       this.player.setPosition(this.gamePanel);
       this.player.gameOver = function () {
-        Game.gameOver();
+        _this.gameOver();
       };
       this.player.moveDown();
     }
@@ -154,9 +155,16 @@ var Game = function () {
     key: "startBlock",
     value: function startBlock() {
       this.block = new _blockbase2.default();
-      var that = this;
+      var self = this;
       var time = 1100;
-      new _block_generator2.default(this.gamePanel, this.player);
+      var newBlock = new _block_generator2.default(this.gamePanel, this.player);
+      newBlock.defaultBlock();
+      this.createBlockId = setInterval(function () {
+        if (self.player.isLive) {
+          newBlock.generateBlock();
+          self.addPoint();
+        }
+      }, time);
     }
   }, {
     key: "keyDown",
@@ -169,12 +177,12 @@ var Game = function () {
   }, {
     key: "keyUp",
     value: function keyUp() {
-      var _this = this;
+      var _this2 = this;
 
       return function (e) {
         if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
           e.preventDefault();
-          _this.player.keyUp(e);
+          _this2.player.keyUp(e);
         }
       };
     }
@@ -284,8 +292,9 @@ var Player = function () {
       console.log(direction);
       var self = this;
       this.dom.className = direction;
+
       var move = function move() {
-        if (self.isLive === false) {
+        if (!self.isLive) {
           clearInterval(self.moveXId);
         }
         self.dom.style.left = self.dom.offsetLeft + self.speedX * (direction === "left" ? -1 : 1) + "px";
@@ -352,7 +361,7 @@ var Player = function () {
   }, {
     key: "checkCrash",
     value: function checkCrash() {
-      if (this.dom.offsetTop >= this.gamePanel.offsetHeigt - this.dom.clientheight || this.dom.offsetTop <= 0) {
+      if (this.dom.offsetTop >= this.gamePanel.offsetHeight - this.dom.clientHeight || this.dom.offsetTop <= 0) {
         return true;
       } else {
         return false;
@@ -391,14 +400,115 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var BlockBase = function BlockBase() {
-  _classCallCheck(this, BlockBase);
+var BlockBase = function () {
+  function BlockBase() {
+    _classCallCheck(this, BlockBase);
 
-  this.positionX = 0;
-  this.positionY = 0;
-};
+    this.dom = null;
+    this.className = "";
+    this.moveId = 0;
+    this.needCheckMove = false;
+    this.needCheckPlayerOn = true;
+    this.movepx = 3;
+    this.movesp = 35;
+    this.gamePanel = null;
+    this.site = {
+      1: 0,
+      2: 55,
+      3: 110,
+      4: 165,
+      5: 220
+    };
+    this.dom = document.createElement("div");
+    this.dom.className = this.className;
+    this.dom.style.width = "80px";
+    this.dom.style.height = "10px";
+  }
+
+  _createClass(BlockBase, [{
+    key: "init",
+    value: function init() {
+      this.dom = document.createElement("div");
+      this.dom.className = this.className;
+      this.dom.style.width = "80px";
+      this.dom.style.height = "10px";
+    }
+  }, {
+    key: "setPosition",
+    value: function setPosition(gamePanel, type) {
+      if (this.gamePanel === null) {
+        this.gamePanel = gamePanel;
+      }
+      this.dom.style.left = this.site[type] + "px";
+      this.dom.style.top = this.gamePanel.offsetHeight + "px";
+      this.gamePanel.appendChild(this.dom);
+    }
+  }, {
+    key: "animation",
+    value: function animation() {
+      var self = this;
+      var animate = function animate() {
+        if (self.dom === null) {
+          return;
+        }
+        var top = self.dom.offsetTop - self.movepx;
+        self.dom.style.top = top + "px";
+        var isPlayerOn = self.needCheckPlayerOn && self.onCheckPlayerOn();
+        if (self.needCheckMove) {
+          self.onCheckMoveOut();
+        }
+        //block is out of the dom and player is not on it, then it disappear
+        if (top <= -self.dom.offsetHeigt && !isPlayerOn) {
+          self.end();
+        } else if (isPlayerOn) {
+          //excute block effects accordingly
+          self.stopMove();
+          self.onPlayOn();
+        }
+      };
+      this.moveId = setInterval(animate, this.movesp);
+    }
+  }, {
+    key: "stopMove",
+    value: function stopMove() {
+      clearTimeout(this.moveId);
+    }
+  }, {
+    key: "end",
+    value: function end() {
+      this.stopMove();
+      this.gamePanel.removeChild(this.dom);
+      this.dom = null;
+      this.onEnd();
+    }
+  }, {
+    key: "checkPlayerOn",
+    value: function checkPlayerOn(player) {
+      if (player.isFlip) {
+        return false;
+      }
+      var playerDom = player.dom;
+      var blockDom = this.dom;
+
+      //check if player is within the block dom
+      if (playerDom.offsetLeft > blockDom.offsetLeft - playerDom.clientWidth && playerDom.offsetLeft < blockDom.offsetLeft + blockDom.clientWidth) {
+        //this checks if the player y cordinate is above the block as well as its next move's y cord
+        if (playerDom.offsetTop + playerDom.clientHeight <= blockDom.offsetTop && playerDom.offsetTop + playerDom.clientHeight + player.movepy + player.g > blockDom.offsetTop - this.movepx) {
+          playerDom.style.top = blockDom.offsetTop - playerDom.offsetHeight + "px";
+          this.needCheckPlayerOn = false;
+          return true;
+        }
+      }
+      return false;
+    }
+  }]);
+
+  return BlockBase;
+}();
 
 exports.default = BlockBase;
 
@@ -431,17 +541,30 @@ var _spring_block = __webpack_require__(8);
 
 var _spring_block2 = _interopRequireDefault(_spring_block);
 
+var _blockbase = __webpack_require__(3);
+
+var _blockbase2 = _interopRequireDefault(_blockbase);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var BlockGenerator = function () {
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var BlockGenerator = function (_BlockBase) {
+  _inherits(BlockGenerator, _BlockBase);
+
   function BlockGenerator(gamePanel, player) {
     _classCallCheck(this, BlockGenerator);
 
-    this.gamePanel = gamePanel;
-    this.player = player;
-    this.blockList = [];
+    var _this = _possibleConstructorReturn(this, (BlockGenerator.__proto__ || Object.getPrototypeOf(BlockGenerator)).call(this));
+
+    _this.gamePanel = gamePanel;
+    _this.player = player;
+    _this.blockList = [];
+    return _this;
   }
 
   //randomly generate different kinds of blocks in random positions
@@ -455,13 +578,16 @@ var BlockGenerator = function () {
       if (random === 5) {
         block = new _brick_block2.default();
       } else if (random === 7) {
-        block = new _grass_block2.default();
+        block = new _brick_block2.default();
       } else if (random === 9) {
-        block = new _spring_block2.default();
+        block = new _brick_block2.default();
       } else if (random === 11) {
-        block = new _lava_block2.default();
+        block = new _brick_block2.default();
+      } else {
+        return;
       }
       var randomPosition = Math.floor(Math.random() * 5 + 1);
+      console.log(block);
       this.setBlock(block, randomPosition);
     }
 
@@ -471,24 +597,36 @@ var BlockGenerator = function () {
     key: "defaultBlock",
     value: function defaultBlock() {
       var block = new _brick_block2.default();
-      this.setBlock(block, 3);
+      this.setBlock(block, 5);
     }
+
+    // init(gamePanel, player) {
+    //   this.gamePanel = gamePanel;
+    //   this.player = player;
+    // }
+
   }, {
     key: "setBlock",
     value: function setBlock(block, position) {
-      var _this = this;
+      var _this2 = this;
 
       var self = this;
       block.init();
       block.setPosition(this.gamePanel, position);
       block.onCheckPlayerOn = function () {
-        return _this.checkPlayerOn(self.player);
+        return this.checkPlayerOn(self.player);
       };
-      block.onPlayOn = this.playOn.bind(this);
-      block.onCheckPlayerOn = this.checkMoveOut.bind(this);
+      block.onPlayOn = function () {
+        _this2.playOn(self.player);
+      };
+      block.onCheckMoveOut = function () {
+        _this2.checkMoveOut(self.player);
+      };
       block.onEnd = function () {
-        self.blockList.remove(_this);
+        self.blockList.remove(_this2);
       };
+      block.animation();
+      this.blockList.push(block);
     }
   }, {
     key: "stopBlock",
@@ -510,7 +648,7 @@ var BlockGenerator = function () {
   }]);
 
   return BlockGenerator;
-}();
+}(_blockbase2.default);
 
 Array.prototype.remove = function (obj) {
   for (var i = 0; i < this.length; i++) {
@@ -530,6 +668,68 @@ exports.default = BlockGenerator;
 
 "use strict";
 
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _blockbase = __webpack_require__(3);
+
+var _blockbase2 = _interopRequireDefault(_blockbase);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var BrickBlock = function (_BlockBase) {
+  _inherits(BrickBlock, _BlockBase);
+
+  function BrickBlock() {
+    _classCallCheck(this, BrickBlock);
+
+    var _this = _possibleConstructorReturn(this, (BrickBlock.__proto__ || Object.getPrototypeOf(BrickBlock)).call(this));
+
+    _this.className = "brick";
+    return _this;
+  }
+
+  _createClass(BrickBlock, [{
+    key: "playOn",
+    value: function playOn(player) {
+      //player stops moving vertically
+      player.clearMoveId(true);
+      //player moves up with the same speed as block it's on
+      player.moveUp(this.movepx, this.movesp);
+      this.animation();
+      this.needCheckMove = true;
+    }
+  }, {
+    key: "checkMoveOut",
+    value: function checkMoveOut(player) {
+      var playerDom = player.dom;
+      var blockDom = this.dom;
+
+      //when player moves out of the block
+      if (playerDom.offsetLeft <= blockDom.offsetLeft - playerDom.clientWidth || playerDom.offsetLeft >= blockDom.offsetLeft + blockDom.clientWidth) {
+        //player moves downward
+        player.clearMoveId(true);
+        player.moveDown();
+        this.needCheckMove = false;
+        this.needCheckPlayerOn = true;
+      }
+    }
+  }]);
+
+  return BrickBlock;
+}(_blockbase2.default);
+
+exports.default = BrickBlock;
 
 /***/ }),
 /* 6 */
