@@ -95,19 +95,6 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
-// init() {
-//   this.gamePanel = document.getElementById("game-wrapper");
-//   this.gamePanel.focus();
-//   document.body.onkeydown = e => {
-//     Game.keydown(e);
-//   };
-//   document.body.onkeyup = e => {
-//     Game.keyup(e);
-//   };
-//   this.startPlayer();
-//   this.startBlock();
-// }
-
 /***/ }),
 /* 1 */
 /***/ (function(module, exports, __webpack_require__) {
@@ -207,7 +194,11 @@ var Game = function () {
     }
   }, {
     key: "reset",
-    value: function reset() {}
+    value: function reset() {
+      _block_generator2.default.clearBlock();
+      this.gamePanel.removeChild(this.player.dom);
+      this.gamePanel = null;
+    }
   }]);
 
   return Game;
@@ -252,9 +243,6 @@ var Player = function () {
   }
 
   _createClass(Player, [{
-    key: "init",
-    value: function init() {}
-  }, {
     key: "setPosition",
     value: function setPosition(gamePanel) {
       this.dom = document.createElement("div");
@@ -262,17 +250,6 @@ var Player = function () {
       this.gamePanel.appendChild(this.dom);
       this.dom.style.left = (this.gamePanel.offsetWidth - this.dom.offsetWidth) / 2 + "px";
       this.dom.style.top = 70 + "px";
-    }
-  }, {
-    key: "moveLeftOrRight",
-    value: function moveLeftOrRight(direction) {
-      var self = this;
-      this.dom.className = direction;
-      // const move = () =>{
-      //   if (self.isLive === false) {
-      //
-      //   }
-      // }
     }
 
     //moves left or right according to which key is pressed
@@ -297,11 +274,52 @@ var Player = function () {
       clearInterval(this.moveXId);
     }
   }, {
+    key: "moveLeftOrRight",
+    value: function moveLeftOrRight(direction) {
+      console.log(direction);
+      var self = this;
+      this.dom.className = direction;
+      var move = function move() {
+        if (self.isLive === false) {
+          clearInterval(self.moveXId);
+        }
+        self.dom.style.left = self.dom.offsetLeft + self.movepx * (direction === "left" ? -1 : 1) + "px";
+
+        if (self.dom.offsetLeft >= self.gamePanel.clientWidth - self.dom.clientWidth && direction === "right") {
+          self.dom.style.left = self.gamePanel.clientWidth - self.dom.clientWidth + "px";
+          clearInterval(self.moveXId);
+        } else if (self.dom.offsetLeft <= 0 && direction === "left") {
+          self.dom.style.left = 0 + "px";
+          clearInterval(self.moveXId);
+        }
+      };
+      this.moveXId = setInterval(move, this.movesp);
+    }
+  }, {
     key: "moveDown",
-    value: function moveDown() {}
+    value: function moveDown() {
+      var self = this;
+      var move = function move() {
+        self.dom.style.top = self.dom.offsetTop + self.movepy + "px";
+        self.movepy += self.g;
+        if (self.checkCrash()) {
+          self.dead();
+        }
+      };
+      self.moveYID = setInterval(move, this.movesp);
+    }
   }, {
     key: "moveUp",
-    value: function moveUp() {}
+    value: function moveUp(b_movepx, b_movesp) {
+      var self = this;
+      var move = function move() {
+        self.dom.style.top = self.dom.offsetTop - b_movesp + "px";
+        if (self.checkCrash()) {
+          self.dead();
+        }
+      };
+      this.moveYId = setInterval(move, b_movesp);
+    }
   }, {
     key: "flip",
     value: function flip() {}
