@@ -38,3 +38,9 @@
   overflow: hidden;
   background: red;
 }
+#gamePanel .grass {
+  position: absolute;
+  background-color: green;
+  overflow: hidden;
+  background: green;
+}
