@@ -1,15 +1,18 @@
-#game-wrapper {
+#gamePanel {
   width: 500px;
   height: 500px;
   background-color: Black;
   position: absolute;
-  /*left: 500px;*/
-  /*top: 100px;*/
   overflow: hidden;
-  .player {
-    width: 30px;
-    height: 30px;
-    position: absolute;
-    background-color: red;
-  }
+}
+#gamePanel .player {
+  width: 30px;
+  height: 30px;
+  position: absolute;
+  background: red;
+}
+
+#gamePanel .left {
+  width: 30px;
+  height: 30px;
 }

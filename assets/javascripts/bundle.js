@@ -86,7 +86,7 @@ document.onkeyup = function (e) {
 
 document.addEventListener("DOMContentLoaded", function () {
   var startButton = document.querySelector(".start");
-  game.gamePanel = document.getElementById("game-wrapper");
+  game.gamePanel = document.getElementById("gamePanel");
   game.gamePanel.focus();
   game.startPlayer();
   game.startBlock();
@@ -198,6 +198,8 @@ var Game = function () {
       _block_generator2.default.clearBlock();
       this.gamePanel.removeChild(this.player.dom);
       this.gamePanel = null;
+      this.player = null;
+      this.point = null;
     }
   }]);
 
@@ -225,27 +227,29 @@ var Player = function () {
   function Player() {
     _classCallCheck(this, Player);
 
-    this.health = 100;
     this.dom = null;
     //player's vertical moving speed
-    this.moveYSpeed = 0;
+    this.speedY = 0;
+    this.isMoving = false;
     //player's horizontal moving speed
-    this.moveXSpeed = 8;
     this.moveXId = 0;
     this.moveYid = 0;
-    this.isMoving = false;
     this.isLive = true;
+    this.isFlip = false;
     this.gamePanel = null;
     this.elasticity = 0.8;
     this.gravity = 1;
-    this.defaultMoveYSpeed = 1;
-    this.moveFrame = 40;
+    this.speedX = 8;
+    this.defaultSpeedY = 1;
+    this.movesp = 40;
+    this.dom = document.createElement("div");
+    this.dom.className = "player";
+    this.speedY = this.defaultSpeedY;
   }
 
   _createClass(Player, [{
     key: "setPosition",
     value: function setPosition(gamePanel) {
-      this.dom = document.createElement("div");
       this.gamePanel = gamePanel;
       this.gamePanel.appendChild(this.dom);
       this.dom.style.left = (this.gamePanel.offsetWidth - this.dom.offsetWidth) / 2 + "px";
@@ -272,6 +276,7 @@ var Player = function () {
     value: function keyUp(e) {
       this.isMoving = false;
       clearInterval(this.moveXId);
+      this.dom.className = "player";
     }
   }, {
     key: "moveLeftOrRight",
@@ -283,7 +288,7 @@ var Player = function () {
         if (self.isLive === false) {
           clearInterval(self.moveXId);
         }
-        self.dom.style.left = self.dom.offsetLeft + self.movepx * (direction === "left" ? -1 : 1) + "px";
+        self.dom.style.left = self.dom.offsetLeft + self.speedX * (direction === "left" ? -1 : 1) + "px";
 
         if (self.dom.offsetLeft >= self.gamePanel.clientWidth - self.dom.clientWidth && direction === "right") {
           self.dom.style.left = self.gamePanel.clientWidth - self.dom.clientWidth + "px";
@@ -300,8 +305,8 @@ var Player = function () {
     value: function moveDown() {
       var self = this;
       var move = function move() {
-        self.dom.style.top = self.dom.offsetTop + self.movepy + "px";
-        self.movepy += self.g;
+        self.dom.style.top = self.dom.offsetTop + self.speedY + "px";
+        self.speedY += self.gravity;
         if (self.checkCrash()) {
           self.dead();
         }
@@ -310,27 +315,63 @@ var Player = function () {
     }
   }, {
     key: "moveUp",
-    value: function moveUp(b_movepx, b_movesp) {
+    value: function moveUp(moveUpSpeed, moveUpFreq) {
       var self = this;
       var move = function move() {
-        self.dom.style.top = self.dom.offsetTop - b_movesp + "px";
+        self.dom.style.top = self.dom.offsetTop - moveUpSpeed + "px";
         if (self.checkCrash()) {
           self.dead();
         }
       };
-      this.moveYId = setInterval(move, b_movesp);
+      this.moveYId = setInterval(move, moveUpFreq);
     }
   }, {
     key: "flip",
-    value: function flip() {}
+    value: function flip() {
+      if (this.isFlip) {
+        return;
+      }
+      this.isFlip = true;
+      var self = this;
+      var initialFlipSpeed = 25;
+      var move = function move() {
+        initialFlipSpeed *= self.elasticity;
+        self.dom.style.top = self.dom.offsetTop - initialFlipSpeed + "px";
+        if (self.checkCrash()) {
+          self.dead();
+        } else if (initialFlipSpeed < 1) {
+          self.isFlip = false;
+          self.speedY = self.defaultSpeedY;
+          self.moveDown();
+        } else {
+          setTimeout(move, self.movesp);
+        }
+      };
+      setTimeout(move, self.movesp);
+    }
   }, {
     key: "checkCrash",
-    value: function checkCrash() {}
+    value: function checkCrash() {
+      if (this.dom.offsetTop >= this.gamePanel.offsetHeigt - this.dom.clientheight || this.dom.offsetTop <= 0) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+  }, {
+    key: "clearMoveId",
+    value: function clearMoveId(speedY) {
+      clearInterval(this.moveYId);
+      if (speedY) {
+        this.speedY = this.defaultSpeedY;
+      }
+    }
   }, {
     key: "dead",
     value: function dead() {
       this.isLive = false;
       this.gameOver();
+      this.clearMoveId();
     }
   }]);
 
