@@ -76,13 +76,12 @@ var _game2 = _interopRequireDefault(_game);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var game = new _game2.default();
-
 document.addEventListener("DOMContentLoaded", function () {
   var startButton = document.querySelector(".start");
-  game.startButton = startButton;
 
   startButton.addEventListener("click", function () {
+    var game = new _game2.default();
+    game.startButton = startButton;
     document.onkeydown = function (e) {
       game.keydown(e);
     };
@@ -93,7 +92,6 @@ document.addEventListener("DOMContentLoaded", function () {
     game.initializePlayer();
     game.initializeBlock();
     startButton.style.display = "none";
-    console.log(game);
   });
 });
 
@@ -134,7 +132,7 @@ var Game = function () {
     this.time = 0;
     this.startButton = null;
     this.createBlockId = 0;
-    // this.gamePanel = null;
+    this.gamePanel = null;
   }
 
   //initialize player
@@ -161,9 +159,9 @@ var Game = function () {
       var self = this;
       var newBlock = new _block_generator2.default(this.gamePanel, this.player);
       newBlock.defaultBlock();
-      this.clearAllBlocks = function () {
-        newBlock.clearBlock();
-      };
+      // this.clearAllBlocks = function() {
+      //   newBlock.clearBlock();
+      // };
       this.freezeBlocks = function () {
         newBlock.stopBlock();
       };
@@ -191,15 +189,17 @@ var Game = function () {
   }, {
     key: "gameOver",
     value: function gameOver() {
-      console.log(this);
       this.freezeBlocks();
       clearInterval(this.createBlockId);
       document.body.onkeydown = null;
       document.body.onkeyup = null;
       this.startButton.style.display = "";
       this.player.dom.style.display = "none";
-      this.clearAllBlocks();
       this.player = null;
+      while (this.gamePanel.childNodes.length > 26) {
+        //this finally work!!! remove all blocks in gamePanel SO HAPPY
+        this.gamePanel.removeChild(this.gamePanel.lastChild);
+      }
       this.gamePanel = null;
       document.onkeydown = null;
       document.onkeyup = null;
@@ -292,36 +292,12 @@ var Player = function () {
       this.dom.className = "player";
     }
   }, {
-    key: "moveLeftOrRight",
-    value: function moveLeftOrRight(direction) {
-      var self = this;
-      this.dom.className = direction;
-
-      var move = function move() {
-        if (!self.living) {
-          clearInterval(self.moveXId);
-        }
-        self.dom.style.left = self.dom.offsetLeft + self.movepx * (direction == "left" ? -1 : 1) + "px";
-
-        if (self.dom.offsetLeft >= self.gamePanel.clientWidth - self.dom.clientWidth && direction == "right") {
-          self.dom.style.left = self.gamePanel.clientWidth - self.dom.clientWidth + "px";
-          clearInterval(self.moveXId);
-          //player stops moving when it reaches left border
-        } else if (self.dom.offsetLeft <= 0 && direction == "left") {
-          self.dom.style.left = 0 + "px";
-          clearInterval(self.moveXId);
-        }
-      };
-      //start moving
-      this.moveXId = setInterval(move, this.movesp);
-    }
-  }, {
     key: "moveDown",
     value: function moveDown() {
       var self = this;
       var move = function move() {
         self.dom.style.top = self.dom.offsetTop + self.movepy + "px";
-        //vertical speed + g
+        //vertical speed + gravity
         self.movepy += self.gravity;
         if (self.isAlive()) {
           self.dead();
@@ -367,13 +343,11 @@ var Player = function () {
       setTimeout(move, self.movesp);
     }
   }, {
-    key: "isAlive",
-    value: function isAlive() {
-      if (this.dom.offsetTop >= this.gamePanel.offsetHeight - this.dom.clientHeight || this.dom.offsetTop <= 40) {
-        return true;
-      } else {
-        return false;
-      }
+    key: "dead",
+    value: function dead() {
+      this.living = false;
+      this.gameOver();
+      this.clearMoveId(true);
     }
   }, {
     key: "clearMoveId",
@@ -384,15 +358,41 @@ var Player = function () {
       }
     }
   }, {
-    key: "dead",
-    value: function dead() {
-      this.living = false;
-      this.gameOver();
-      this.clearMoveId(true);
+    key: "isAlive",
+    value: function isAlive() {
+      if (this.dom.offsetTop >= this.gamePanel.offsetHeight - this.dom.clientHeight || this.dom.offsetTop <= 40) {
+        return true;
+      } else {
+        return false;
+      }
     }
   }, {
     key: "gameOver",
     value: function gameOver() {}
+  }, {
+    key: "moveLeftOrRight",
+    value: function moveLeftOrRight(direction) {
+      var self = this;
+      this.dom.className = direction;
+
+      var move = function move() {
+        if (!self.living) {
+          clearInterval(self.moveXId);
+        }
+        self.dom.style.left = self.dom.offsetLeft + self.movepx * (direction == "left" ? -1 : 1) + "px";
+
+        if (self.dom.offsetLeft >= self.gamePanel.clientWidth - self.dom.clientWidth && direction == "right") {
+          self.dom.style.left = self.gamePanel.clientWidth - self.dom.clientWidth + "px";
+          clearInterval(self.moveXId);
+          //player stops moving when it reaches left border
+        } else if (self.dom.offsetLeft <= 0 && direction == "left") {
+          self.dom.style.left = 0 + "px";
+          clearInterval(self.moveXId);
+        }
+      };
+      //start moving
+      this.moveXId = setInterval(move, this.movesp);
+    }
   }]);
 
   return Player;
@@ -430,6 +430,10 @@ var _spring_block = __webpack_require__(8);
 
 var _spring_block2 = _interopRequireDefault(_spring_block);
 
+var _frost_block = __webpack_require__(10);
+
+var _frost_block2 = _interopRequireDefault(_frost_block);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -450,7 +454,7 @@ var BlockGenerator = function () {
     key: "generateBlock",
     value: function generateBlock() {
       var prev_block = 0;
-      var random = Math.floor(Math.random() * 11 + 1);
+      var random = Math.floor(Math.random() * 12 + 1);
       var block = void 0;
       if (random <= 4) {
         block = new _brick_block2.default();
@@ -462,12 +466,13 @@ var BlockGenerator = function () {
         block = new _grass_block2.default();
       } else if (random === 9 || random === 10) {
         block = new _spring_block2.default();
+      } else if (random === 11 || random === 12) {
+        block = new _frost_block2.default();
       } else {
         return;
       }
       prev_block = random;
       var randomPosition = Math.floor(Math.random() * 9 + 1);
-      // console.log(block);
       this.addBlock(block, randomPosition);
       this.allBlocks.push(block);
     }
@@ -491,10 +496,7 @@ var BlockGenerator = function () {
     key: "addBlock",
     value: function addBlock(block, position) {
       var self = this;
-      // console.log("block:", block);
       block.formBlock();
-      // console.log("afterformation:", block);
-      // this.allBlocks.push(block);
       block.onCheckPlayerOn = function () {
         return this.checkPlayerOn(self.player);
       };
@@ -505,11 +507,7 @@ var BlockGenerator = function () {
       block.onCheckMoveOut = function () {
         this.checkMoveOut(self.player);
       };
-      block.onEnd = function () {
-        self.allBlocks.remove();
-      };
       block.render();
-      // console.log(this.allBlocks);
     }
   }, {
     key: "stopBlock",
@@ -519,36 +517,10 @@ var BlockGenerator = function () {
         this.allBlocks[i].stopMove();
       }
     }
-  }, {
-    key: "clearBlock",
-    value: function clearBlock() {
-      // const length = this.allBlocks.length;
-      console.log(this.allBlocks);
-      while (this.allBlocks.length > 0) {
-        var block = this.allBlocks.pop();
-        // debugger
-        // console.log(block.dom);
-        this.gamePanel.removeChild(block.dom);
-        block.dom = null;
-        block = null;
-      }
-    }
   }]);
 
   return BlockGenerator;
 }();
-
-Array.prototype.remove = function (block) {
-  var i = 0;
-  while (i < this.length) {
-    if (this[i] == block || this[i] == null) {
-      this.splice(i, 1);
-      break;
-    }
-    i += 1;
-  }
-  return this;
-};
 
 exports.default = BlockGenerator;
 
@@ -740,7 +712,6 @@ var LavaBlock = function (_ParentBlock) {
     value: function playerOn(player) {
       player.clearMoveId(true);
       player.dead();
-      alert("Game Over");
     }
   }]);
 
@@ -842,10 +813,6 @@ var ParentBlock = function () {
       9: 400,
       10: 450
     };
-    this.dom = document.createElement("div");
-    this.dom.className = this.className;
-    this.dom.style.width = "60px";
-    this.dom.style.height = "15px";
   }
 
   _createClass(ParentBlock, [{
@@ -906,19 +873,13 @@ var ParentBlock = function () {
       this.stopMove();
       this.gamePanel.removeChild(this.dom);
       this.dom = null;
-      this.onEnd();
     }
-  }, {
-    key: "onEnd",
-    value: function onEnd() {}
   }, {
     key: "checkPlayerOn",
     value: function checkPlayerOn(player) {
       if (player.isJumping) {
         return false;
       }
-      // let playerDom = player.dom;
-      // let blockDom = this.dom;
 
       var leftPlayerEle = player.dom.offsetLeft;
       var leftBlockEle = this.dom.offsetLeft;
@@ -942,6 +903,101 @@ var ParentBlock = function () {
 }();
 
 exports.default = ParentBlock;
+
+/***/ }),
+/* 10 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _parent_block = __webpack_require__(9);
+
+var _parent_block2 = _interopRequireDefault(_parent_block);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var FrostBlock = function (_ParentBlock) {
+  _inherits(FrostBlock, _ParentBlock);
+
+  function FrostBlock() {
+    _classCallCheck(this, FrostBlock);
+
+    var _this = _possibleConstructorReturn(this, (FrostBlock.__proto__ || Object.getPrototypeOf(FrostBlock)).call(this));
+
+    _this.className = 'frost';
+    return _this;
+  }
+
+  _createClass(FrostBlock, [{
+    key: "playerOn",
+    value: function playerOn(player) {
+      player.clearMoveId(true);
+      //player moves up with the same speed as block it's on
+      player.moveUp(3, 25);
+      this.render();
+      this.needCheckMove = true;
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      var self = this;
+      var animate = function animate() {
+        if (self.dom === null) {
+          return;
+        }
+        var top = self.dom.offsetTop - self.movepx;
+        self.dom.style.top = top + "px";
+        //checking if player is on the block
+        var isPlayerOn = self.needCheckPlayerOn && self.onCheckPlayerOn();
+        //checking if player moves on the block
+        if (self.needCheckMove) {
+          self.onCheckMoveOut();
+        }
+        //block is out of the dom and player is not on it, then it disappear
+        if (top <= -self.dom.offsetHeight && !isPlayerOn) {
+          self.end();
+        } else if (isPlayerOn) {
+          //excute block effects accordingly
+          self.stopMove();
+          self.onPlayOn();
+        }
+      };
+      this.moveId = setInterval(animate, 25);
+    }
+  }, {
+    key: "checkMoveOut",
+    value: function checkMoveOut(player) {
+      var playerDom = player.dom;
+      var blockDom = this.dom;
+
+      //when player moves out of the block
+      if (playerDom.offsetLeft <= blockDom.offsetLeft - playerDom.clientWidth || playerDom.offsetLeft >= blockDom.offsetLeft + blockDom.clientWidth) {
+        //player moves downward
+        player.clearMoveId(true);
+        player.moveDown();
+        this.needCheckMove = false;
+        this.needCheckPlayerOn = true;
+      }
+    }
+  }]);
+
+  return FrostBlock;
+}(_parent_block2.default);
+
+exports.default = FrostBlock;
 
 /***/ })
 /******/ ]);
