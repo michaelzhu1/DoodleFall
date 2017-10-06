@@ -194,7 +194,7 @@ var Game = function () {
       document.body.onkeydown = null;
       document.body.onkeyup = null;
       this.startButton.style.display = "";
-      this.player.dom.style.display = "none";
+      // this.player.dom.style.display = "none";
       this.player = null;
       while (this.gamePanel.childNodes.length > 36) {
         //this finally work!!! remove all blocks in gamePanel SO HAPPY
