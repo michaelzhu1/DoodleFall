@@ -19,7 +19,7 @@ Unlike "Doodle Jump", user is trying to make the Doodle staying alive by falling
 * Webpack to bundle and serve up scripts
 * Object-oriented programming and class inheritance
 
-
+![game demo](https://github.com/michaelzhu1/DoodleFall/blob/master/assets/images/readme_demo.gif)
 
 ## Bonus Feature
 * Sprite regain some of its health when it lands on a special "healthBlock"
