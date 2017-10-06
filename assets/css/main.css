@@ -1,8 +1,30 @@
+html {
+  background-image: url("http://res.cloudinary.com/foolishhunger/image/upload/c_scale,w_1280/v1507277242/gba-1080_bnq6a0.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+#startbtn {
+  position: absolute;
+  cursor: pointer;
+  width: 740px;
+  height: 480px;
+  left: 350px;
+  top: 165px;
+  overflow: hidden;
+  border-width: 100px;
+  z-index: 101;
+  border-style: solid;
+  border-color: grey green grey green;
+  font-size: 50px;
+}
+
 #gamePanel {
-  left: 300px;
-  top: 50px;
-  width: 520px;
-  height: 550px;
+  left: 350px;
+  top: 165px;
+  width: 740px;
+  height: 480px;
+  font-size: 14px;
   position: absolute;
   overflow: hidden;
   background-image: url(http://res.cloudinary.com/foolishhunger/image/upload/v1507250062/bck_m1c2kg.png);
@@ -11,6 +33,7 @@
 #gamePanel img {
   width: 40px;
   height: 40px;
+  z-index: 200;
 }
 
 #gamePanel .player {
@@ -65,18 +88,40 @@
   content: url(http://res.cloudinary.com/foolishhunger/image/upload/v1507273009/frost_block_i4tyol.png);
 }
 
-
-#blade {
-  width: 40px;
-  height: 40px;
-  position: absolute;
-  z-index: 100;
-  content: url(http://res.cloudinary.com/foolishhunger/image/upload/v1507223306/spikes_bhq2kk.png);
+.start h2 {
+  font-size: 16px;
 }
 
 #fire {
-  height: 505px;
+  height: 435px;
   background: linear-gradient(transparent, #111);
   display: flex;
   align-items: flex-end;
+  z-index: -1;
 }
+
+h1 {
+  font-size: 40px;
+  font-family: sans-serif;
+  position: absolute;
+  left: 320px;
+  color: white;
+  border: white solid 3px;
+}
+
+.time {
+  top: 150px;
+  position: absolute;
+  font-size: 30px;
+  font-weight: bold;
+  font-family: sans-serif;
+  color: white;
+}
+
+/*#gba {
+  position: absolute;
+  left: 100px;
+  width: 1690px;
+  height: 1011px;
+  content: url("http://res.cloudinary.com/foolishhunger/image/upload/v1507275312/gba_jih5uc.png");
+}*/

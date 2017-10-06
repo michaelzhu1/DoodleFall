@@ -135,10 +135,24 @@ var Game = function () {
     this.gamePanel = null;
   }
 
-  //initialize player
-
-
   _createClass(Game, [{
+    key: "keydown",
+    value: function keydown(e) {
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        this.player.keydown(e);
+      }
+    }
+  }, {
+    key: "keyup",
+    value: function keyup(e) {
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        this.player.keyup(e);
+      }
+    }
+
+    //initialize player
+
+  }, {
     key: "initializePlayer",
     value: function initializePlayer() {
       var _this = this;
@@ -173,20 +187,6 @@ var Game = function () {
       }, 500);
     }
   }, {
-    key: "keydown",
-    value: function keydown(e) {
-      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-        this.player.keydown(e);
-      }
-    }
-  }, {
-    key: "keyup",
-    value: function keyup(e) {
-      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-        this.player.keyup(e);
-      }
-    }
-  }, {
     key: "gameOver",
     value: function gameOver() {
       this.freezeBlocks();
@@ -196,7 +196,7 @@ var Game = function () {
       this.startButton.style.display = "";
       this.player.dom.style.display = "none";
       this.player = null;
-      while (this.gamePanel.childNodes.length > 26) {
+      while (this.gamePanel.childNodes.length > 36) {
         //this finally work!!! remove all blocks in gamePanel SO HAPPY
         this.gamePanel.removeChild(this.gamePanel.lastChild);
       }
@@ -246,12 +246,6 @@ var Player = function () {
     this.movepy = 0;
     //player's horizontal moving speed
     this.movepx = 8;
-    this.isMove = false;
-    this.moveXId = 0;
-    this.moveYId = 0;
-    this.living = true;
-    this.isJumping = false;
-    this.gamePanel = null;
     this.k = 0.6;
     this.gravity = 1;
     this.defaultSpeed = 1;
@@ -259,6 +253,12 @@ var Player = function () {
     this.dom = document.createElement("div");
     this.dom.className = "player";
     this.movepy = this.defaultSpeed;
+    this.isMove = false;
+    this.moveXId = 0;
+    this.moveYId = 0;
+    this.living = true;
+    this.isJumping = false;
+    this.gamePanel = null;
   }
 
   _createClass(Player, [{
@@ -472,7 +472,7 @@ var BlockGenerator = function () {
         return;
       }
       prev_block = random;
-      var randomPosition = Math.floor(Math.random() * 9 + 1);
+      var randomPosition = Math.floor(Math.random() * 15 + 1);
       this.addBlock(block, randomPosition);
       this.allBlocks.push(block);
     }
@@ -483,7 +483,7 @@ var BlockGenerator = function () {
     key: "defaultBlock",
     value: function defaultBlock() {
       var block = new _brick_block2.default();
-      this.addBlock(block, 6);
+      this.addBlock(block, 8);
       this.allBlocks.push(block);
     }
   }, {
@@ -811,7 +811,12 @@ var ParentBlock = function () {
       7: 300,
       8: 350,
       9: 400,
-      10: 450
+      10: 450,
+      11: 500,
+      12: 550,
+      13: 600,
+      14: 650,
+      15: 700
     };
   }
 
