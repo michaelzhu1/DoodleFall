@@ -16,7 +16,7 @@
   width: 605px;
   height: 550px;
   left: 320px;
-  top: 150px;
+  top: 100px;
   overflow: hidden;
   border-width: 100px;
   z-index: 101;
@@ -30,7 +30,7 @@ html {
 }
 #gamePanel {
   left: 320px;
-  top: 150px;
+  top: 100px;
   width: 605px;
   height: 550px;
   /*min-width: 733px;
