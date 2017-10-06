@@ -57,3 +57,4 @@ Setup all necessary Node modules, including getting webpack up and running. Crea
 * Sprite regain some of its health when it lands on a special "healthBlock"
 * User can get items such as extra life or making itself smaller
 * Two player can play at the same time to compete against each other
+* Add a backend to record player's name and best time

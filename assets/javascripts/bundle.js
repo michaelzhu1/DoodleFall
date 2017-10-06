@@ -895,12 +895,14 @@ var ParentBlock = function () {
       var leftBlockEle = this.dom.offsetLeft;
       var playerEleWidth = player.dom.clientWidth;
       var blockEleWidth = this.dom.clientWidth;
-
+      var playerHeight = player.dom.clientHeight;
+      var playerTop = player.dom.offsetTop;
+      var blockTop = this.dom.offsetTop;
       //check if player is within the block dom
       if (leftPlayerEle > leftBlockEle - playerEleWidth && leftPlayerEle < leftBlockEle + blockEleWidth) {
         //this checks if the player y cordinate is above the block as well as its next move's y cord
-        if (player.dom.offsetTop + player.dom.clientHeight <= this.dom.offsetTop && player.dom.offsetTop + player.dom.clientHeight + player.movepy + player.gravity > this.dom.offsetTop - this.movepx) {
-          player.dom.style.top = this.dom.offsetTop - player.dom.offsetHeight + "px";
+        if (playerTop + playerHeight <= blockTop && playerTop + playerHeight + player.movepy + player.gravity > blockTop - this.movepx) {
+          player.dom.style.top = blockTop - player.dom.offsetHeight + "px";
           this.needCheckPlayerOn = false;
           return true;
         }

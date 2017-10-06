@@ -7,7 +7,7 @@ html {
 #startbtn {
   position: absolute;
   cursor: pointer;
-  width: 740px;
+  width: 730px;
   height: 480px;
   left: 350px;
   top: 165px;
@@ -22,7 +22,7 @@ html {
 #gamePanel {
   left: 350px;
   top: 165px;
-  width: 740px;
+  width: 731px;
   height: 480px;
   font-size: 14px;
   position: absolute;
