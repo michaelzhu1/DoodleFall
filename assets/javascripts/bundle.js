@@ -133,6 +133,7 @@ var Game = function () {
     this.startButton = null;
     this.createBlockId = 0;
     this.gamePanel = null;
+    this.longestTime = 0;
   }
 
   _createClass(Game, [{
@@ -184,7 +185,7 @@ var Game = function () {
           newBlock.generateBlock();
           self.timer();
         }
-      }, 500);
+      }, 300);
     }
   }, {
     key: "gameOver",
@@ -203,6 +204,10 @@ var Game = function () {
       this.gamePanel = null;
       document.onkeydown = null;
       document.onkeyup = null;
+      if (Math.floor(this.time / 2) > this.longestTime) {
+        this.longestTime = Math.floor(this.time / 2);
+      }
+      document.getElementById("record").innerHTML = this.longestTime + " seconds";
       alert("Game Over! You lasted " + Math.floor(this.time / 2) + " seconds");
       this.time = 0;
     }
@@ -241,12 +246,12 @@ var Player = function () {
   function Player() {
     _classCallCheck(this, Player);
 
-    this.dom = null;
+    // this.dom = null;
     //player's vertical moving speed
     this.movepy = 0;
     //player's horizontal moving speed
     this.movepx = 8;
-    this.k = 0.6;
+    this.elasticity = 0.6;
     this.gravity = 1;
     this.defaultSpeed = 1;
     this.movesp = 35;
@@ -327,7 +332,7 @@ var Player = function () {
       var self = this;
       var initialJumpSpeed = 25;
       var move = function move() {
-        initialJumpSpeed *= self.k;
+        initialJumpSpeed *= self.elasticity;
         self.dom.style.top = self.dom.offsetTop - initialJumpSpeed + "px";
         if (self.isAlive()) {
           self.dead();
