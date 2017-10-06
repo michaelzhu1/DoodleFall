@@ -27,7 +27,7 @@ In addition to the webpack entry file, there will be four scripts involved in th
 
 `game.js`: this script will handle the gameplay
 `player.js`: this script will handle player interaction with the sprite and keeps track of the sprite's status
-`blockbase.js`: this script will contain different kinds of blocks in the game, for examples: `lavaBlock`, `grassBlock`, `brickBlock` and `springBlock`
+`ParentBlock.js`: this script will contain different kinds of blocks in the game, for examples: `lavaBlock`, `grassBlock`, `brickBlock` and `springBlock`
 `blackgenerator.js`: this script will be responsible for randomly generating different blocks for the container
 
 ## Implementation Timeline
@@ -43,7 +43,7 @@ Setup all necessary Node modules, including getting webpack up and running. Crea
 * Get the blocks to move upward
 * Get collision graphics working when sprite stand on the block or hit the spiky ceiling
 ### Day 3
-* Complete `blockbase.js`
+* Complete `ParentBlock.js`
 * Add different audio depends on which block the sprite lands on, and game over
 * Have a functional game so that the sprite can move around and land on different blocks
 ### Day 4: Style the frontend, making it polished and professional

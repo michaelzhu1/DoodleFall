@@ -77,21 +77,23 @@ var _game2 = _interopRequireDefault(_game);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var game = new _game2.default();
-document.onkeydown = function (e) {
-  game.keydown(e);
-};
-document.onkeyup = function (e) {
-  game.keyup(e);
-};
 
 document.addEventListener("DOMContentLoaded", function () {
   var startButton = document.querySelector(".start");
-  game.gamePanel = document.getElementById("gamePanel");
-  game.gamePanel.focus();
-  game.startPlayer();
-  game.startBlock();
+  game.startButton = startButton;
+
   startButton.addEventListener("click", function () {
+    document.onkeydown = function (e) {
+      game.keydown(e);
+    };
+    document.onkeyup = function (e) {
+      game.keyup(e);
+    };
+    game.gamePanel = document.getElementById("gamePanel");
+    game.initializePlayer();
+    game.initializeBlock();
     startButton.style.display = "none";
+    console.log(game);
   });
 });
 
@@ -112,9 +114,9 @@ var _player = __webpack_require__(2);
 
 var _player2 = _interopRequireDefault(_player);
 
-var _blockbase = __webpack_require__(3);
+var _parent_block = __webpack_require__(9);
 
-var _blockbase2 = _interopRequireDefault(_blockbase);
+var _parent_block2 = _interopRequireDefault(_parent_block);
 
 var _block_generator = __webpack_require__(4);
 
@@ -129,21 +131,22 @@ var Game = function () {
     _classCallCheck(this, Game);
 
     this.player = null;
-    this.point = 0;
+    this.time = 0;
     this.startButton = null;
     this.createBlockId = 0;
+    // this.gamePanel = null;
   }
 
   //initialize player
 
 
   _createClass(Game, [{
-    key: "startPlayer",
-    value: function startPlayer() {
+    key: "initializePlayer",
+    value: function initializePlayer() {
       var _this = this;
 
       this.player = new _player2.default();
-      this.player.setPosition(this.gamePanel);
+      this.player.blockPosition(this.gamePanel);
       this.player.gameOver = function () {
         _this.gameOver();
       };
@@ -152,63 +155,66 @@ var Game = function () {
     //initialize blocks
 
   }, {
-    key: "startBlock",
-    value: function startBlock() {
-      this.block = new _blockbase2.default();
+    key: "initializeBlock",
+    value: function initializeBlock() {
+      this.block = new _parent_block2.default();
       var self = this;
-      var time = 800;
       var newBlock = new _block_generator2.default(this.gamePanel, this.player);
       newBlock.defaultBlock();
+      this.clearAllBlocks = function () {
+        newBlock.clearBlock();
+      };
+      this.freezeBlocks = function () {
+        newBlock.stopBlock();
+      };
       this.createBlockId = setInterval(function () {
-        if (self.player.isLive) {
+        if (self.player.living) {
           newBlock.generateBlock();
-          self.addPoint();
+          self.timer();
         }
-      }, time);
+      }, 500);
     }
   }, {
     key: "keydown",
     value: function keydown(e) {
-      e = e || window.event;
       if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-        if (e.preventDefault) {
-          e.preventDefault();
-        } else {
-          e.returnValue = false;
-        }
         this.player.keydown(e);
       }
     }
   }, {
     key: "keyup",
     value: function keyup(e) {
-      e = e || window.event;
       if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
         this.player.keyup(e);
       }
     }
   }, {
-    key: "addPoint",
-    value: function addPoint() {
-      this.point += 1;
-      document.getElementById("point").innerHTML = Math.floor(this.point / 5);
-    }
-  }, {
     key: "gameOver",
     value: function gameOver() {
+      console.log(this);
+      this.freezeBlocks();
+      clearInterval(this.createBlockId);
       document.body.onkeydown = null;
       document.body.onkeyup = null;
-      clearInterval(this.createBlockId);
+      this.startButton.style.display = "";
+      this.player.dom.style.display = "none";
+      this.clearAllBlocks();
+      this.player = null;
+      this.gamePanel = null;
+      document.onkeydown = null;
+      document.onkeyup = null;
+      alert("Game Over! You lasted " + Math.floor(this.time / 2) + " seconds");
+      this.time = 0;
     }
   }, {
-    key: "reset",
-    value: function reset() {
-      _block_generator2.default.clearBlock();
-      this.gamePanel.removeChild(this.player.dom);
-      this.gamePanel = null;
-      this.player = null;
-      this.point = null;
+    key: "timer",
+    value: function timer() {
+      this.time += 1;
+      document.getElementById("time").innerHTML = Math.floor(this.time / 2) + " seconds";
     }
+  }, {
+    key: "clearAllBlocks",
+    value: function clearAllBlocks() {}
   }]);
 
   return Game;
@@ -243,11 +249,11 @@ var Player = function () {
     this.isMove = false;
     this.moveXId = 0;
     this.moveYId = 0;
-    this.isLive = true;
-    this.isFlip = false;
+    this.living = true;
+    this.isJumping = false;
     this.gamePanel = null;
-    this.k = 0.8;
-    this.g = 1;
+    this.k = 0.6;
+    this.gravity = 1;
     this.defaultSpeed = 1;
     this.movesp = 35;
     this.dom = document.createElement("div");
@@ -256,8 +262,8 @@ var Player = function () {
   }
 
   _createClass(Player, [{
-    key: "setPosition",
-    value: function setPosition(gamePanel) {
+    key: "blockPosition",
+    value: function blockPosition(gamePanel) {
       this.gamePanel = gamePanel;
       this.gamePanel.appendChild(this.dom);
       this.dom.style.left = (this.gamePanel.offsetWidth - this.dom.offsetWidth) / 2 + "px";
@@ -292,7 +298,7 @@ var Player = function () {
       this.dom.className = direction;
 
       var move = function move() {
-        if (!self.isLive) {
+        if (!self.living) {
           clearInterval(self.moveXId);
         }
         self.dom.style.left = self.dom.offsetLeft + self.movepx * (direction == "left" ? -1 : 1) + "px";
@@ -316,8 +322,8 @@ var Player = function () {
       var move = function move() {
         self.dom.style.top = self.dom.offsetTop + self.movepy + "px";
         //vertical speed + g
-        self.movepy += self.g;
-        if (self.checkCrash()) {
+        self.movepy += self.gravity;
+        if (self.isAlive()) {
           self.dead();
         }
       };
@@ -329,28 +335,29 @@ var Player = function () {
       var self = this;
       var move = function move() {
         self.dom.style.top = self.dom.offsetTop - moveUpSpeed + "px";
-        if (self.checkCrash()) {
+        if (self.isAlive()) {
           self.dead();
         }
       };
       this.moveYId = setInterval(move, moveUpFreq);
     }
   }, {
-    key: "flip",
-    value: function flip() {
-      if (this.isFlip) {
+    key: "jump",
+    value: function jump() {
+      if (this.isJumping) {
         return;
       }
-      this.isFlip = true;
+      this.isJumping = true;
       var self = this;
-      var initialFlipSpeed = 25;
+      var initialJumpSpeed = 25;
       var move = function move() {
-        initialFlipSpeed *= self.k;
-        self.dom.style.top = self.dom.offsetTop - initialFlipSpeed + "px";
-        if (self.checkCrash()) {
+        initialJumpSpeed *= self.k;
+        self.dom.style.top = self.dom.offsetTop - initialJumpSpeed + "px";
+        if (self.isAlive()) {
           self.dead();
-        } else if (initialFlipSpeed < 1) {
-          self.isFlip = false;
+        } else if (initialJumpSpeed < 1) {
+          //set the vertical speed back to default and move down
+          self.isJumping = false;
           self.movepy = self.defaultSpeed;
           self.moveDown();
         } else {
@@ -360,9 +367,9 @@ var Player = function () {
       setTimeout(move, self.movesp);
     }
   }, {
-    key: "checkCrash",
-    value: function checkCrash() {
-      if (this.dom.offsetTop >= this.gamePanel.offsetHeight - this.dom.clientHeight || this.dom.offsetTop <= 0) {
+    key: "isAlive",
+    value: function isAlive() {
+      if (this.dom.offsetTop >= this.gamePanel.offsetHeight - this.dom.clientHeight || this.dom.offsetTop <= 40) {
         return true;
       } else {
         return false;
@@ -379,7 +386,7 @@ var Player = function () {
   }, {
     key: "dead",
     value: function dead() {
-      this.isLive = false;
+      this.living = false;
       this.gameOver();
       this.clearMoveId(true);
     }
@@ -394,139 +401,7 @@ var Player = function () {
 exports.default = Player;
 
 /***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var BlockBase = function () {
-  function BlockBase() {
-    _classCallCheck(this, BlockBase);
-
-    this.dom = null;
-    this.className = "";
-    this.moveId = 0;
-    this.needCheckMove = false;
-    this.needCheckPlayerOn = true;
-    this.movepx = 3;
-    this.movesp = 35;
-    this.gamePanel = null;
-    this.site = {
-      1: 0,
-      2: 55,
-      3: 110,
-      4: 165,
-      5: 220
-    };
-    this.dom = document.createElement("div");
-    this.dom.className = this.className;
-    this.dom.style.width = "80px";
-    this.dom.style.height = "10px";
-  }
-
-  _createClass(BlockBase, [{
-    key: "init",
-    value: function init() {
-      this.dom = document.createElement("div");
-      this.dom.className = this.className;
-      this.dom.style.width = "80px";
-      this.dom.style.height = "10px";
-    }
-  }, {
-    key: "setPosition",
-    value: function setPosition(gamePanel, type) {
-      if (this.gamePanel === null) {
-        this.gamePanel = gamePanel;
-      }
-      this.dom.style.left = this.site[type] + "px";
-      this.dom.style.top = this.gamePanel.offsetHeight + "px";
-      this.gamePanel.appendChild(this.dom);
-    }
-  }, {
-    key: "animation",
-    value: function animation() {
-      var self = this;
-      var animate = function animate() {
-        if (self.dom === null) {
-          return;
-        }
-        var top = self.dom.offsetTop - self.movepx;
-        self.dom.style.top = top + "px";
-        //checking if player is on the block
-        var isPlayerOn = self.needCheckPlayerOn && self.onCheckPlayerOn();
-        //checking if player moves on the block
-        if (self.needCheckMove) {
-          self.onCheckMoveOut();
-        }
-        //block is out of the dom and player is not on it, then it disappear
-        if (top <= -self.dom.offsetHeight && !isPlayerOn) {
-          self.end();
-        } else if (isPlayerOn) {
-          //excute block effects accordingly
-          self.stopMove();
-          self.onPlayOn();
-        }
-      };
-      this.moveId = setInterval(animate, this.movesp);
-    }
-  }, {
-    key: "stopMove",
-    value: function stopMove() {
-      clearTimeout(this.moveId);
-    }
-  }, {
-    key: "end",
-    value: function end() {
-      this.stopMove();
-      this.gamePanel.removeChild(this.dom);
-      this.dom = null;
-      this.onEnd();
-    }
-  }, {
-    key: "checkPlayerOn",
-    value: function checkPlayerOn(player) {
-      if (player.isFlip) {
-        return false;
-      }
-      var playerDom = player.dom;
-      var blockDom = this.dom;
-
-      //check if player is within the block dom
-      if (playerDom.offsetLeft > blockDom.offsetLeft - playerDom.clientWidth && playerDom.offsetLeft < blockDom.offsetLeft + blockDom.clientWidth) {
-        //this checks if the player y cordinate is above the block as well as its next move's y cord
-        if (playerDom.offsetTop + playerDom.clientHeight <= blockDom.offsetTop && playerDom.offsetTop + playerDom.clientHeight + player.movepy + player.g > blockDom.offsetTop - this.movepx) {
-          playerDom.style.top = blockDom.offsetTop - playerDom.offsetHeight + "px";
-          this.needCheckPlayerOn = false;
-          return true;
-        }
-      }
-      return false;
-    }
-
-    // checkMoveOut(player) {}
-    //
-    // playOn(player) {}
-    // onCheckMoveOut() {}
-    // onCheckPlayerOn() {}
-    // onPlayOn() {}
-
-  }]);
-
-  return BlockBase;
-}();
-
-exports.default = BlockBase;
-
-/***/ }),
+/* 3 */,
 /* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -565,7 +440,7 @@ var BlockGenerator = function () {
 
     this.gamePanel = gamePanel;
     this.player = player;
-    this.blockList = [];
+    this.allBlocks = [];
   }
 
   //randomly generate different kinds of blocks in random positions
@@ -574,24 +449,27 @@ var BlockGenerator = function () {
   _createClass(BlockGenerator, [{
     key: "generateBlock",
     value: function generateBlock() {
+      var prev_block = 0;
       var random = Math.floor(Math.random() * 11 + 1);
       var block = void 0;
-      if (random === 3) {
+      if (random <= 4) {
+        block = new _brick_block2.default();
+      } else if (random === 5 && prev_block === 5) {
+        block = new _brick_block2.default();
+      } else if (random === 6) {
         block = new _lava_block2.default();
-      } else if (random === 5) {
-        block = new _brick_block2.default();
-      } else if (random === 7) {
+      } else if (random === 7 || random === 8) {
         block = new _grass_block2.default();
-      } else if (random === 9) {
-        block = new _brick_block2.default();
-      } else if (random === 11) {
+      } else if (random === 9 || random === 10) {
         block = new _spring_block2.default();
       } else {
         return;
       }
-      var randomPosition = Math.floor(Math.random() * 5 + 1);
-      console.log(block);
-      this.setBlock(block, randomPosition);
+      prev_block = random;
+      var randomPosition = Math.floor(Math.random() * 9 + 1);
+      // console.log(block);
+      this.addBlock(block, randomPosition);
+      this.allBlocks.push(block);
     }
 
     //ensure the player have a easy time starting the game
@@ -600,7 +478,8 @@ var BlockGenerator = function () {
     key: "defaultBlock",
     value: function defaultBlock() {
       var block = new _brick_block2.default();
-      this.setBlock(block, 5);
+      this.addBlock(block, 6);
+      this.allBlocks.push(block);
     }
   }, {
     key: "init",
@@ -609,38 +488,46 @@ var BlockGenerator = function () {
       this.player = player;
     }
   }, {
-    key: "setBlock",
-    value: function setBlock(block, position) {
+    key: "addBlock",
+    value: function addBlock(block, position) {
       var self = this;
-      block.init();
-      block.setPosition(this.gamePanel, position);
+      // console.log("block:", block);
+      block.formBlock();
+      // console.log("afterformation:", block);
+      // this.allBlocks.push(block);
       block.onCheckPlayerOn = function () {
         return this.checkPlayerOn(self.player);
       };
+      block.blockPosition(this.gamePanel, position);
       block.onPlayOn = function () {
-        this.playOn(self.player);
+        this.playerOn(self.player);
       };
       block.onCheckMoveOut = function () {
         this.checkMoveOut(self.player);
       };
       block.onEnd = function () {
-        self.blockList.remove(this);
+        self.allBlocks.remove();
       };
-      block.animation();
-      this.blockList.push(block);
+      block.render();
+      // console.log(this.allBlocks);
     }
   }, {
     key: "stopBlock",
     value: function stopBlock() {
-      for (var i = 0; i < this.blockList.length; i++) {
-        this.blockList[i].stopMove();
+      var length = this.allBlocks.length;
+      for (var i = 0; i < length; i++) {
+        this.allBlocks[i].stopMove();
       }
     }
   }, {
     key: "clearBlock",
     value: function clearBlock() {
-      for (var i = 0; i < this.blockList.length; i++) {
-        var block = this.blockList.pop();
+      // const length = this.allBlocks.length;
+      console.log(this.allBlocks);
+      while (this.allBlocks.length > 0) {
+        var block = this.allBlocks.pop();
+        // debugger
+        // console.log(block.dom);
         this.gamePanel.removeChild(block.dom);
         block.dom = null;
         block = null;
@@ -651,12 +538,14 @@ var BlockGenerator = function () {
   return BlockGenerator;
 }();
 
-Array.prototype.remove = function (obj) {
-  for (var i = 0; i < this.length; i++) {
-    if (this[i] == obj || this[i].dom == null) {
+Array.prototype.remove = function (block) {
+  var i = 0;
+  while (i < this.length) {
+    if (this[i] == block || this[i] == null) {
       this.splice(i, 1);
       break;
     }
+    i += 1;
   }
   return this;
 };
@@ -676,9 +565,9 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _blockbase = __webpack_require__(3);
+var _parent_block = __webpack_require__(9);
 
-var _blockbase2 = _interopRequireDefault(_blockbase);
+var _parent_block2 = _interopRequireDefault(_parent_block);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -688,8 +577,8 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var BrickBlock = function (_BlockBase) {
-  _inherits(BrickBlock, _BlockBase);
+var BrickBlock = function (_ParentBlock) {
+  _inherits(BrickBlock, _ParentBlock);
 
   function BrickBlock() {
     _classCallCheck(this, BrickBlock);
@@ -701,13 +590,13 @@ var BrickBlock = function (_BlockBase) {
   }
 
   _createClass(BrickBlock, [{
-    key: "playOn",
-    value: function playOn(player) {
+    key: "playerOn",
+    value: function playerOn(player) {
       //player stops moving vertically
       player.clearMoveId(true);
       //player moves up with the same speed as block it's on
       player.moveUp(3, 35);
-      this.animation();
+      this.render();
       this.needCheckMove = true;
     }
   }, {
@@ -728,7 +617,7 @@ var BrickBlock = function (_BlockBase) {
   }]);
 
   return BrickBlock;
-}(_blockbase2.default);
+}(_parent_block2.default);
 
 exports.default = BrickBlock;
 
@@ -745,9 +634,9 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _blockbase = __webpack_require__(3);
+var _parent_block = __webpack_require__(9);
 
-var _blockbase2 = _interopRequireDefault(_blockbase);
+var _parent_block2 = _interopRequireDefault(_parent_block);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -757,8 +646,8 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var GrassBlock = function (_BlockBase) {
-  _inherits(GrassBlock, _BlockBase);
+var GrassBlock = function (_ParentBlock) {
+  _inherits(GrassBlock, _ParentBlock);
 
   function GrassBlock() {
     _classCallCheck(this, GrassBlock);
@@ -770,13 +659,13 @@ var GrassBlock = function (_BlockBase) {
   }
 
   _createClass(GrassBlock, [{
-    key: "playOn",
-    value: function playOn(player) {
+    key: "playerOn",
+    value: function playerOn(player) {
       var _this2 = this;
 
       player.clearMoveId(true);
       player.moveUp(this.movepx, this.movesp);
-      this.animation();
+      this.render();
       this.needCheckMove = true;
       setTimeout(function () {
         _this2.end();
@@ -803,7 +692,7 @@ var GrassBlock = function (_BlockBase) {
   }]);
 
   return GrassBlock;
-}(_blockbase2.default);
+}(_parent_block2.default);
 
 exports.default = GrassBlock;
 
@@ -820,9 +709,9 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _blockbase = __webpack_require__(3);
+var _parent_block = __webpack_require__(9);
 
-var _blockbase2 = _interopRequireDefault(_blockbase);
+var _parent_block2 = _interopRequireDefault(_parent_block);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -832,8 +721,8 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var LavaBlock = function (_BlockBase) {
-  _inherits(LavaBlock, _BlockBase);
+var LavaBlock = function (_ParentBlock) {
+  _inherits(LavaBlock, _ParentBlock);
 
   function LavaBlock() {
     _classCallCheck(this, LavaBlock);
@@ -847,15 +736,16 @@ var LavaBlock = function (_BlockBase) {
 
 
   _createClass(LavaBlock, [{
-    key: "playOn",
-    value: function playOn(player) {
+    key: "playerOn",
+    value: function playerOn(player) {
       player.clearMoveId(true);
       player.dead();
+      alert("Game Over");
     }
   }]);
 
   return LavaBlock;
-}(_blockbase2.default);
+}(_parent_block2.default);
 
 exports.default = LavaBlock;
 
@@ -872,9 +762,9 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _blockbase = __webpack_require__(3);
+var _parent_block = __webpack_require__(9);
 
-var _blockbase2 = _interopRequireDefault(_blockbase);
+var _parent_block2 = _interopRequireDefault(_parent_block);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -884,8 +774,8 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var SpringBlock = function (_BlockBase) {
-  _inherits(SpringBlock, _BlockBase);
+var SpringBlock = function (_ParentBlock) {
+  _inherits(SpringBlock, _ParentBlock);
 
   function SpringBlock() {
     _classCallCheck(this, SpringBlock);
@@ -895,21 +785,163 @@ var SpringBlock = function (_BlockBase) {
     _this.className = "spring";
     return _this;
   }
+  //player jumps
+
 
   _createClass(SpringBlock, [{
-    key: "playOn",
-    value: function playOn(player) {
+    key: "playerOn",
+    value: function playerOn(player) {
       player.clearMoveId(true);
-      player.flip();
+      player.jump();
       this.needCheckPlayerOn = true;
-      this.animation();
+      this.render();
     }
   }]);
 
   return SpringBlock;
-}(_blockbase2.default);
+}(_parent_block2.default);
 
 exports.default = SpringBlock;
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var ParentBlock = function () {
+  function ParentBlock() {
+    _classCallCheck(this, ParentBlock);
+
+    // this.dom = null;
+    this.className = "";
+    this.moveId = 0;
+    this.needCheckMove = false;
+    this.needCheckPlayerOn = true;
+    this.movepx = 3;
+    this.movesp = 35;
+    this.gamePanel = null;
+    this.site = {
+      1: 0,
+      2: 50,
+      3: 100,
+      4: 150,
+      5: 200,
+      6: 250,
+      7: 300,
+      8: 350,
+      9: 400,
+      10: 450
+    };
+    this.dom = document.createElement("div");
+    this.dom.className = this.className;
+    this.dom.style.width = "60px";
+    this.dom.style.height = "15px";
+  }
+
+  _createClass(ParentBlock, [{
+    key: "formBlock",
+    value: function formBlock() {
+      this.dom = document.createElement("div");
+      this.dom.className = this.className;
+      this.dom.style.width = "60px";
+      this.dom.style.height = "15px";
+    }
+  }, {
+    key: "blockPosition",
+    value: function blockPosition(gamePanel, type) {
+      if (this.gamePanel === null) {
+        this.gamePanel = gamePanel;
+      }
+      this.dom.style.left = this.site[type] + "px";
+      this.dom.style.top = this.gamePanel.offsetHeight + "px";
+      this.gamePanel.appendChild(this.dom);
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      var self = this;
+      var animate = function animate() {
+        if (self.dom === null) {
+          return;
+        }
+        var top = self.dom.offsetTop - self.movepx;
+        self.dom.style.top = top + "px";
+        //checking if player is on the block
+        var isPlayerOn = self.needCheckPlayerOn && self.onCheckPlayerOn();
+        //checking if player moves on the block
+        if (self.needCheckMove) {
+          self.onCheckMoveOut();
+        }
+        //block is out of the dom and player is not on it, then it disappear
+        if (top <= -self.dom.offsetHeight && !isPlayerOn) {
+          self.end();
+        } else if (isPlayerOn) {
+          //excute block effects accordingly
+          self.stopMove();
+          self.onPlayOn();
+        }
+      };
+      this.moveId = setInterval(animate, this.movesp);
+    }
+  }, {
+    key: "stopMove",
+    value: function stopMove() {
+      clearTimeout(this.moveId);
+    }
+    //removes grassblock
+
+  }, {
+    key: "end",
+    value: function end() {
+      this.stopMove();
+      this.gamePanel.removeChild(this.dom);
+      this.dom = null;
+      this.onEnd();
+    }
+  }, {
+    key: "onEnd",
+    value: function onEnd() {}
+  }, {
+    key: "checkPlayerOn",
+    value: function checkPlayerOn(player) {
+      if (player.isJumping) {
+        return false;
+      }
+      // let playerDom = player.dom;
+      // let blockDom = this.dom;
+
+      var leftPlayerEle = player.dom.offsetLeft;
+      var leftBlockEle = this.dom.offsetLeft;
+      var playerEleWidth = player.dom.clientWidth;
+      var blockEleWidth = this.dom.clientWidth;
+
+      //check if player is within the block dom
+      if (leftPlayerEle > leftBlockEle - playerEleWidth && leftPlayerEle < leftBlockEle + blockEleWidth) {
+        //this checks if the player y cordinate is above the block as well as its next move's y cord
+        if (player.dom.offsetTop + player.dom.clientHeight <= this.dom.offsetTop && player.dom.offsetTop + player.dom.clientHeight + player.movepy + player.gravity > this.dom.offsetTop - this.movepx) {
+          player.dom.style.top = this.dom.offsetTop - player.dom.offsetHeight + "px";
+          this.needCheckPlayerOn = false;
+          return true;
+        }
+      }
+      return false;
+    }
+  }]);
+
+  return ParentBlock;
+}();
+
+exports.default = ParentBlock;
 
 /***/ })
 /******/ ]);

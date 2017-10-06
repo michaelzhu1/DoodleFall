@@ -1,56 +1,99 @@
 #gamePanel {
-  width: 500px;
-  height: 500px;
-  background-color: gray;
+  left: 300px;
+  top: 50px;
+  width: 520px;
+  height: 550px;
   position: absolute;
   overflow: hidden;
+  background-image: url(http://res.cloudinary.com/foolishhunger/image/upload/v1507250062/bck_m1c2kg.png);
 }
+
+#gamePanel img {
+  width: 40px;
+  height: 40px;
+}
+
 #gamePanel .player {
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 50px;
+  z-index: 100;
   position: absolute;
-  background: red;
   border-radius: 100px;
+  content: url(http://res.cloudinary.com/foolishhunger/image/upload/v1507184502/doodle_dkjeoo.png);
 }
 
 #gamePanel .left {
-  width: 30px;
-  height: 30px;
+  width: 50px;
+  height: 50px;
   position: absolute;
-  background: red;
-  border-radius: 100px;
+  content: url(http://res.cloudinary.com/foolishhunger/image/upload/v1507184502/leftDoodle_z734yq.png);
 }
 
 #gamePanel .right {
-  width: 30px;
-  height: 30px;
+  width: 50px;
+  height: 50px;
   position: absolute;
-  /*background: url(Run__000.png);*/
-  background: red;
-  border-radius: 100px;
+  content: url(http://res.cloudinary.com/foolishhunger/image/upload/v1507184503/rightDoodle_vym8kp.png);
 }
 
 #gamePanel .brick {
   position: absolute;
-  background-color: white;
-  overflow: hidden;
-  background: white;
+  /*background-color: white;*/
+  /*overflow: hidden;*/
+  background: url(http://res.cloudinary.com/foolishhunger/image/upload/v1507182423/game-tiles_tvnc8y.png)
+    0 0;
 }
 #gamePanel .lava {
   position: absolute;
-  background-color: red;
+  width: 50px;
+  height: 15px;
+  /*background-color: red;*/
   overflow: hidden;
-  background: red;
+  background: url(http://res.cloudinary.com/foolishhunger/image/upload/v1507222269/lava_block_gspdj0.png);
+  /*background-position: top 256 left 0;*/
+  /*content: url(http://res.cloudinary.com/foolishhunger/image/upload/v1507181523/lavaBlock_y3cpul.png);*/
+  /*background: red;*/
 }
 #gamePanel .grass {
   position: absolute;
-  background-color: green;
+  /*background-color: green;*/
   overflow: hidden;
-  background: green;
+  content: url(http://res.cloudinary.com/foolishhunger/image/upload/v1507220447/grass_block_jmhiln.png);
+  /*background: yellow;*/
 }
 #gamePanel .spring {
   position: absolute;
-  background-color: yellow;
+  /*background-color: yellow;*/
   overflow: hidden;
-  background: yellow;
+  content: url(http://res.cloudinary.com/foolishhunger/image/upload/v1507220447/spring_block_g81lw6.png);
+  /*background: yellow;*/
+}
+
+#blade {
+  width: 40px;
+  height: 40px;
+  position: absolute;
+  z-index: 100;
+  /*left: 400px;
+  display: flex;
+  justify-content: center;*/
+  /*top: 50px;*/
+  content: url(http://res.cloudinary.com/foolishhunger/image/upload/v1507223306/spikes_bhq2kk.png);
+  /*animation: spin 2s linear infinite;*/
+}
+
+/*@@keyframes spin {
+  100% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(90deg);
+  }
+}*/
+
+#fire {
+  height: 510px;
+  background: linear-gradient(transparent, #111);
+  display: flex;
+  align-items: flex-end;
 }
