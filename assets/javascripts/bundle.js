@@ -479,7 +479,7 @@ var BlockGenerator = function () {
         return;
       }
       prev_block = random;
-      var randomPosition = Math.floor(Math.random() * 15 + 1);
+      var randomPosition = Math.floor(Math.random() * 12 + 1);
       this.addBlock(block, randomPosition);
       this.allBlocks.push(block);
     }
@@ -824,10 +824,7 @@ var ParentBlock = function () {
       9: 400,
       10: 450,
       11: 500,
-      12: 550,
-      13: 600,
-      14: 650,
-      15: 700
+      12: 550
     };
   }
 
