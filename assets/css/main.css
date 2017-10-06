@@ -1,16 +1,22 @@
-html {
-  background-image: url("http://res.cloudinary.com/foolishhunger/image/upload/c_scale,w_1280/v1507277242/gba-1080_bnq6a0.png");
+/*html {*/
+/*background-image: url("http://res.cloudinary.com/foolishhunger/image/upload/c_scale,w_1280/v1507277242/gba-1080_bnq6a0.png");
   background-repeat: no-repeat;
   background-size: cover;
-}
+  /*min-height: 100%;
+  min-width: 100%;*/
+/*min-width: 1440px;*/
+/*min-height: 775px;*/
+/*max-width: 1440px;*/
+/*max-height: 775px;*/
+/*}*/
 
 #startbtn {
   position: absolute;
   cursor: pointer;
-  width: 730px;
-  height: 480px;
-  left: 350px;
-  top: 165px;
+  width: 605px;
+  height: 550px;
+  left: 320px;
+  top: 150px;
   overflow: hidden;
   border-width: 100px;
   z-index: 101;
@@ -19,11 +25,18 @@ html {
   font-size: 50px;
 }
 
+html {
+  background-image: url("http://res.cloudinary.com/foolishhunger/image/upload/v1507250062/bck_m1c2kg.png");
+}
 #gamePanel {
-  left: 350px;
-  top: 165px;
-  width: 731px;
-  height: 480px;
+  left: 320px;
+  top: 150px;
+  width: 605px;
+  height: 550px;
+  /*min-width: 733px;
+  min-height: 528px;
+  max-width: 733px;
+  max-height: 528px;*/
   font-size: 14px;
   position: absolute;
   overflow: hidden;
@@ -93,7 +106,9 @@ html {
 }
 
 #fire {
-  height: 435px;
+  /*position: absolute;
+  bottom: 0;*/
+  height: 505px;
   background: linear-gradient(transparent, #111);
   display: flex;
   align-items: flex-end;
@@ -104,9 +119,9 @@ h1 {
   font-size: 40px;
   font-family: sans-serif;
   position: absolute;
-  left: 320px;
-  color: white;
-  border: white solid 3px;
+  left: 500px;
+  color: black;
+  border: black solid 3px;
 }
 
 .time {
@@ -115,7 +130,7 @@ h1 {
   font-size: 20px;
   font-weight: bold;
   font-family: sans-serif;
-  color: white;
+  color: black;
 }
 
 .record {
@@ -124,13 +139,20 @@ h1 {
   font-size: 20px;
   font-weight: bold;
   font-family: sans-serif;
-  color: white;
+  color: black;
 }
 
 /*#gba {
+  background: url("http://res.cloudinary.com/foolishhunger/image/upload/c_scale,w_1280/v1507277242/gba-1080_bnq6a0.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+  min-height: 700px;
+  min-width: 1100px;
+  z-index: -1000;
   position: absolute;
-  left: 100px;
-  width: 1690px;
-  height: 1011px;
-  content: url("http://res.cloudinary.com/foolishhunger/image/upload/v1507275312/gba_jih5uc.png");
 }*/
+
+.contact img {
+  width: 50px;
+  height: 50px;
+}

@@ -197,9 +197,11 @@ var Game = function () {
       this.startButton.style.display = "";
       // this.player.dom.style.display = "none";
       this.player = null;
-      while (this.gamePanel.childNodes.length > 36) {
+      while (this.gamePanel.childNodes.length > 32) {
         //this finally work!!! remove all blocks in gamePanel SO HAPPY
-        this.gamePanel.removeChild(this.gamePanel.lastChild);
+        if (this.gamePanel !== null) {
+          this.gamePanel.removeChild(this.gamePanel.lastChild);
+        }
       }
       this.gamePanel = null;
       document.onkeydown = null;
@@ -248,19 +250,19 @@ var Player = function () {
 
     // this.dom = null;
     //player's vertical moving speed
-    this.movepy = 0;
+    this.ySpeed = 0;
     //player's horizontal moving speed
-    this.movepx = 8;
+    this.xSpeed = 8;
     this.elasticity = 0.6;
     this.gravity = 1;
     this.defaultSpeed = 1;
-    this.movesp = 35;
+    this.playerRenderFreq = 35;
     this.dom = document.createElement("div");
     this.dom.className = "player";
-    this.movepy = this.defaultSpeed;
+    this.ySpeed = this.defaultSpeed;
     this.isMove = false;
-    this.moveXId = 0;
-    this.moveYId = 0;
+    this.xMovement = 0;
+    this.yMovement = 0;
     this.living = true;
     this.isJumping = false;
     this.gamePanel = null;
@@ -293,7 +295,7 @@ var Player = function () {
     key: "keyup",
     value: function keyup(e) {
       this.isMove = false;
-      clearInterval(this.moveXId);
+      clearInterval(this.xMovement);
       this.dom.className = "player";
     }
   }, {
@@ -301,14 +303,14 @@ var Player = function () {
     value: function moveDown() {
       var self = this;
       var move = function move() {
-        self.dom.style.top = self.dom.offsetTop + self.movepy + "px";
+        self.dom.style.top = self.dom.offsetTop + self.ySpeed + "px";
         //vertical speed + gravity
-        self.movepy += self.gravity;
+        self.ySpeed += self.gravity;
         if (self.isAlive()) {
           self.dead();
         }
       };
-      self.moveYId = setInterval(move, this.movesp);
+      self.yMovement = setInterval(move, this.playerRenderFreq);
     }
   }, {
     key: "moveUp",
@@ -320,7 +322,7 @@ var Player = function () {
           self.dead();
         }
       };
-      this.moveYId = setInterval(move, moveUpFreq);
+      this.yMovement = setInterval(move, moveUpFreq);
     }
   }, {
     key: "jump",
@@ -339,13 +341,13 @@ var Player = function () {
         } else if (initialJumpSpeed < 1) {
           //set the vertical speed back to default and move down
           self.isJumping = false;
-          self.movepy = self.defaultSpeed;
+          self.ySpeed = self.defaultSpeed;
           self.moveDown();
         } else {
-          setTimeout(move, self.movesp);
+          setTimeout(move, self.playerRenderFreq);
         }
       };
-      setTimeout(move, self.movesp);
+      setTimeout(move, self.playerRenderFreq);
     }
   }, {
     key: "dead",
@@ -356,10 +358,10 @@ var Player = function () {
     }
   }, {
     key: "clearMoveId",
-    value: function clearMoveId(movepy) {
-      clearInterval(this.moveYId);
-      if (movepy) {
-        this.movepy = this.defaultSpeed;
+    value: function clearMoveId(ySpeed) {
+      clearInterval(this.yMovement);
+      if (ySpeed) {
+        this.ySpeed = this.defaultSpeed;
       }
     }
   }, {
@@ -382,21 +384,21 @@ var Player = function () {
 
       var move = function move() {
         if (!self.living) {
-          clearInterval(self.moveXId);
+          clearInterval(self.xMovement);
         }
-        self.dom.style.left = self.dom.offsetLeft + self.movepx * (direction == "left" ? -1 : 1) + "px";
+        self.dom.style.left = self.dom.offsetLeft + self.xSpeed * (direction == "left" ? -1 : 1) + "px";
 
         if (self.dom.offsetLeft >= self.gamePanel.clientWidth - self.dom.clientWidth && direction == "right") {
           self.dom.style.left = self.gamePanel.clientWidth - self.dom.clientWidth + "px";
-          clearInterval(self.moveXId);
+          clearInterval(self.xMovement);
           //player stops moving when it reaches left border
         } else if (self.dom.offsetLeft <= 0 && direction == "left") {
           self.dom.style.left = 0 + "px";
-          clearInterval(self.moveXId);
+          clearInterval(self.xMovement);
         }
       };
       //start moving
-      this.moveXId = setInterval(move, this.movesp);
+      this.xMovement = setInterval(move, this.playerRenderFreq);
     }
   }]);
 
@@ -488,7 +490,7 @@ var BlockGenerator = function () {
     key: "defaultBlock",
     value: function defaultBlock() {
       var block = new _brick_block2.default();
-      this.addBlock(block, 8);
+      this.addBlock(block, 6);
       this.allBlocks.push(block);
     }
   }, {
@@ -579,11 +581,13 @@ var BrickBlock = function (_ParentBlock) {
   }, {
     key: "checkMoveOut",
     value: function checkMoveOut(player) {
-      var playerDom = player.dom;
-      var blockDom = this.dom;
+      var playerDom = player.dom.offsetLeft;
+      var blockDom = this.dom.offsetLeft;
+      var playerDomWidth = player.dom.clientWidth;
+      var blockDomWidth = this.dom.clientWidth;
 
       //when player moves out of the block
-      if (playerDom.offsetLeft <= blockDom.offsetLeft - playerDom.clientWidth || playerDom.offsetLeft >= blockDom.offsetLeft + blockDom.clientWidth) {
+      if (playerDom <= blockDom - playerDomWidth || playerDom >= blockDom + blockDomWidth) {
         //player moves downward
         player.clearMoveId(true);
         player.moveDown();
@@ -641,7 +645,7 @@ var GrassBlock = function (_ParentBlock) {
       var _this2 = this;
 
       player.clearMoveId(true);
-      player.moveUp(this.movepx, this.movesp);
+      player.moveUp(this.blockYSpeed, this.blockRenderFreq);
       this.render();
       this.needCheckMove = true;
       setTimeout(function () {
@@ -654,11 +658,13 @@ var GrassBlock = function (_ParentBlock) {
   }, {
     key: "checkMoveOut",
     value: function checkMoveOut(player) {
-      var playerDom = player.dom;
-      var blockDom = this.dom;
+      var playerDom = player.dom.offsetLeft;
+      var blockDom = this.dom.offsetLeft;
+      var playerDomWidth = player.dom.clientWidth;
+      var blockDomWidth = this.dom.clientWidth;
 
       //when player moves out of the block
-      if (playerDom.offsetLeft <= blockDom.offsetLeft - playerDom.clientWidth || playerDom.offsetLeft >= blockDom.offsetLeft + blockDom.clientWidth) {
+      if (playerDom <= blockDom - playerDomWidth || playerDom >= blockDom + blockDomWidth) {
         //player moves downward
         player.clearMoveId(true);
         player.moveDown();
@@ -803,8 +809,8 @@ var ParentBlock = function () {
     this.moveId = 0;
     this.needCheckMove = false;
     this.needCheckPlayerOn = true;
-    this.movepx = 3;
-    this.movesp = 35;
+    this.blockYSpeed = 3;
+    this.blockRenderFreq = 35;
     this.gamePanel = null;
     this.site = {
       1: 0,
@@ -851,8 +857,7 @@ var ParentBlock = function () {
         if (self.dom === null) {
           return;
         }
-        var top = self.dom.offsetTop - self.movepx;
-        self.dom.style.top = top + "px";
+        self.dom.style.top = self.dom.offsetTop - self.blockYSpeed + "px";
         //checking if player is on the block
         var isPlayerOn = self.needCheckPlayerOn && self.onCheckPlayerOn();
         //checking if player moves on the block
@@ -861,6 +866,7 @@ var ParentBlock = function () {
         }
         //block is out of the dom and player is not on it, then it disappear
         if (top <= -self.dom.offsetHeight && !isPlayerOn) {
+          console.log(self.dom);
           self.end();
         } else if (isPlayerOn) {
           //excute block effects accordingly
@@ -868,7 +874,7 @@ var ParentBlock = function () {
           self.onPlayOn();
         }
       };
-      this.moveId = setInterval(animate, this.movesp);
+      this.moveId = setInterval(animate, this.blockRenderFreq);
     }
   }, {
     key: "stopMove",
@@ -881,6 +887,7 @@ var ParentBlock = function () {
     key: "end",
     value: function end() {
       this.stopMove();
+      // console.log(this.dom);
       this.gamePanel.removeChild(this.dom);
       this.dom = null;
     }
@@ -901,7 +908,7 @@ var ParentBlock = function () {
       //check if player is within the block dom
       if (leftPlayerEle > leftBlockEle - playerEleWidth && leftPlayerEle < leftBlockEle + blockEleWidth) {
         //this checks if the player y cordinate is above the block as well as its next move's y cord
-        if (playerTop + playerHeight <= blockTop && playerTop + playerHeight + player.movepy + player.gravity > blockTop - this.movepx) {
+        if (playerTop + playerHeight <= blockTop && playerTop + playerHeight + player.ySpeed + player.gravity > blockTop - this.blockYSpeed) {
           player.dom.style.top = blockTop - player.dom.offsetHeight + "px";
           this.needCheckPlayerOn = false;
           return true;
@@ -949,7 +956,7 @@ var FrostBlock = function (_ParentBlock) {
 
     var _this = _possibleConstructorReturn(this, (FrostBlock.__proto__ || Object.getPrototypeOf(FrostBlock)).call(this));
 
-    _this.className = 'frost';
+    _this.className = "frost";
     return _this;
   }
 
@@ -970,7 +977,7 @@ var FrostBlock = function (_ParentBlock) {
         if (self.dom === null) {
           return;
         }
-        var top = self.dom.offsetTop - self.movepx;
+        var top = self.dom.offsetTop - self.blockYSpeed;
         self.dom.style.top = top + "px";
         //checking if player is on the block
         var isPlayerOn = self.needCheckPlayerOn && self.onCheckPlayerOn();
@@ -979,9 +986,7 @@ var FrostBlock = function (_ParentBlock) {
           self.onCheckMoveOut();
         }
         //block is out of the dom and player is not on it, then it disappear
-        if (top <= -self.dom.offsetHeight && !isPlayerOn) {
-          self.end();
-        } else if (isPlayerOn) {
+        if (isPlayerOn) {
           //excute block effects accordingly
           self.stopMove();
           self.onPlayOn();
@@ -992,11 +997,13 @@ var FrostBlock = function (_ParentBlock) {
   }, {
     key: "checkMoveOut",
     value: function checkMoveOut(player) {
-      var playerDom = player.dom;
-      var blockDom = this.dom;
+      var playerDom = player.dom.offsetLeft;
+      var blockDom = this.dom.offsetLeft;
+      var playerDomWidth = player.dom.clientWidth;
+      var blockDomWidth = this.dom.clientWidth;
 
       //when player moves out of the block
-      if (playerDom.offsetLeft <= blockDom.offsetLeft - playerDom.clientWidth || playerDom.offsetLeft >= blockDom.offsetLeft + blockDom.clientWidth) {
+      if (playerDom <= blockDom - playerDomWidth || playerDom >= blockDom + blockDomWidth) {
         //player moves downward
         player.clearMoveId(true);
         player.moveDown();
