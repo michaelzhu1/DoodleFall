@@ -197,7 +197,9 @@ var Game = function () {
       this.startButton.style.display = "";
       // this.player.dom.style.display = "none";
       this.player = null;
-      while (this.gamePanel.childNodes.length > 32) {
+      console.log(this.gamePanel.childNodes.length);
+      console.log(this.gamePanel.childNodes);
+      while (this.gamePanel.childNodes.length > 31) {
         //this finally work!!! remove all blocks in gamePanel SO HAPPY
         if (this.gamePanel !== null) {
           this.gamePanel.removeChild(this.gamePanel.lastChild);
